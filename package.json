@@ -1,0 +1,28 @@
+{
+  "name": "mental-model",
+  "version": "0.1.0",
+  "description": "A structured knowledge graph tool for AI agents",
+  "type": "module",
+  "bin": {
+    "mm": "./dist/index.js"
+  },
+  "scripts": {
+    "dev": "npx tsx src/index.ts",
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.8.1",
+    "chalk": "^5.4.1",
+    "commander": "^13.1.0",
+    "nanoid": "^5.1.5"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^22.13.10",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2",
+    "vitest": "^3.1.1"
+  }
+}
