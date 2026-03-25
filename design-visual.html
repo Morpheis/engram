@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mental Model — Architecture & Design</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'base',
+      themeVariables: {
+        primaryColor: '#1e3a5f',
+        primaryTextColor: '#e6edf3',
+        primaryBorderColor: '#2d5a8e',
+        lineColor: '#d4a73a',
+        secondaryColor: '#0d2137',
+        tertiaryColor: '#162a42',
+        fontFamily: 'IBM Plex Sans, system-ui',
+        fontSize: '14px',
+        noteBkgColor: '#1a3352',
+        noteTextColor: '#e6edf3',
+        noteBorderColor: '#2d5a8e'
+      }
+    });
+  </script>
+  <style>
+    :root {
+      --font-body: 'IBM Plex Sans', system-ui, sans-serif;
+      --font-mono: 'IBM Plex Mono', 'SF Mono', Consolas, monospace;
+      --bg: #0a1628;
+      --surface: #0f1f35;
+      --surface-elevated: #142842;
+      --border: rgba(212, 167, 58, 0.15);
+      --border-bright: rgba(212, 167, 58, 0.3);
+      --text: #e6edf3;
+      --text-dim: #7d8da0;
+      --accent: #d4a73a;
+      --accent-dim: rgba(212, 167, 58, 0.1);
+      --blue: #3b82f6;
+      --blue-dim: rgba(59, 130, 246, 0.12);
+      --teal: #0891b2;
+      --teal-dim: rgba(8, 145, 178, 0.12);
+      --green: #059669;
+      --green-dim: rgba(5, 150, 105, 0.12);
+      --rose: #be123c;
+      --rose-dim: rgba(190, 18, 60, 0.12);
+      --amber: #d97706;
+      --amber-dim: rgba(217, 119, 6, 0.12);
+    }
+
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #f5f0e8;
+        --surface: #faf7f2;
+        --surface-elevated: #ffffff;
+        --border: rgba(30, 58, 95, 0.12);
+        --border-bright: rgba(30, 58, 95, 0.25);
+        --text: #1a1a2e;
+        --text-dim: #6b7280;
+        --accent: #b8860b;
+        --accent-dim: rgba(184, 134, 11, 0.08);
+        --blue: #1e40af;
+        --blue-dim: rgba(30, 64, 175, 0.08);
+        --teal: #0e7490;
+        --teal-dim: rgba(14, 116, 144, 0.08);
+        --green: #047857;
+        --green-dim: rgba(4, 120, 87, 0.08);
+        --rose: #9f1239;
+        --rose-dim: rgba(159, 18, 57, 0.08);
+        --amber: #b45309;
+        --amber-dim: rgba(180, 83, 9, 0.08);
+      }
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--bg);
+      background-image: radial-gradient(ellipse at 30% 0%, var(--accent-dim) 0%, transparent 50%),
+                        radial-gradient(ellipse at 80% 100%, var(--blue-dim) 0%, transparent 40%);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 3rem 2rem;
+    }
+
+    /* ── Header ── */
+    .header {
+      text-align: center;
+      margin-bottom: 4rem;
+      animation: fadeUp 0.6s ease-out;
+    }
+
+    .header__badge {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--accent);
+      background: var(--accent-dim);
+      border: 1px solid var(--border-bright);
+      padding: 0.3rem 1rem;
+      border-radius: 2rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 1.5rem;
+    }
+
+    .header h1 {
+      font-size: 2.8rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 0.75rem;
+      letter-spacing: -0.02em;
+    }
+
+    .header__sub {
+      font-size: 1.15rem;
+      color: var(--text-dim);
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    /* ── Section ── */
+    .section {
+      margin-bottom: 3.5rem;
+      animation: fadeUp 0.6s ease-out both;
+    }
+
+    .section:nth-child(2) { animation-delay: 0.1s; }
+    .section:nth-child(3) { animation-delay: 0.15s; }
+    .section:nth-child(4) { animation-delay: 0.2s; }
+    .section:nth-child(5) { animation-delay: 0.25s; }
+    .section:nth-child(6) { animation-delay: 0.3s; }
+
+    .section__label {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .section__label::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    .section h2 {
+      font-size: 1.6rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      letter-spacing: -0.01em;
+    }
+
+    .section p {
+      color: var(--text-dim);
+      max-width: 800px;
+      margin-bottom: 1rem;
+    }
+
+    /* ── Cards ── */
+    .ve-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .ve-card--hero {
+      background: var(--surface-elevated);
+      border-color: var(--border-bright);
+      box-shadow: 0 4px 24px rgba(0,0,0,0.15);
+    }
+
+    .ve-card h3 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .ve-card p {
+      color: var(--text-dim);
+      font-size: 0.95rem;
+    }
+
+    /* ── Grid layouts ── */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+    }
+
+    @media (max-width: 768px) {
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    }
+
+    /* ── Data model table ── */
+    .schema-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+      margin: 1rem 0;
+    }
+
+    .schema-table th {
+      text-align: left;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      padding: 0.75rem 1rem;
+      border-bottom: 2px solid var(--border-bright);
+    }
+
+    .schema-table td {
+      padding: 0.6rem 1rem;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-dim);
+    }
+
+    .schema-table tr:hover td {
+      background: var(--accent-dim);
+    }
+
+    .schema-table code {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--text);
+      background: var(--accent-dim);
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+    }
+
+    /* ── Code blocks ── */
+    .code-block {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.25rem;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      line-height: 1.7;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      color: var(--text-dim);
+      margin: 1rem 0;
+    }
+
+    .code-block .cmd { color: var(--accent); }
+    .code-block .flag { color: var(--teal); }
+    .code-block .comment { color: var(--text-dim); opacity: 0.6; }
+    .code-block .output { color: var(--green); }
+
+    /* ── Badges ── */
+    .badge {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .badge--blue { background: var(--blue-dim); color: var(--blue); border: 1px solid var(--blue); }
+    .badge--teal { background: var(--teal-dim); color: var(--teal); border: 1px solid var(--teal); }
+    .badge--green { background: var(--green-dim); color: var(--green); border: 1px solid var(--green); }
+    .badge--amber { background: var(--amber-dim); color: var(--amber); border: 1px solid var(--amber); }
+    .badge--rose { background: var(--rose-dim); color: var(--rose); border: 1px solid var(--rose); }
+
+    /* ── Phase cards ── */
+    .phase-card {
+      position: relative;
+      padding-left: 2rem;
+    }
+
+    .phase-card::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      border-radius: 3px;
+    }
+
+    .phase-card--p1::before { background: var(--green); }
+    .phase-card--p2::before { background: var(--blue); }
+    .phase-card--p3::before { background: var(--amber); }
+    .phase-card--p4::before { background: var(--rose); }
+
+    /* ── Mermaid ── */
+    .mermaid-wrap {
+      display: flex;
+      justify-content: center;
+      margin: 1.5rem 0;
+      padding: 1rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    /* ── Animations ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { animation: none !important; }
+    }
+
+    /* ── Flow diagram ── */
+    .flow-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin: 1.5rem 0;
+    }
+
+    .flow-node {
+      background: var(--surface-elevated);
+      border: 1px solid var(--border-bright);
+      border-radius: 8px;
+      padding: 0.6rem 1.2rem;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      white-space: nowrap;
+    }
+
+    .flow-arrow {
+      color: var(--accent);
+      font-size: 1.2rem;
+    }
+
+    /* ── Gap table ── */
+    .gap-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+      margin: 1rem 0;
+    }
+
+    .gap-table th {
+      text-align: left;
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      padding: 0.75rem 1rem;
+      border-bottom: 2px solid var(--border-bright);
+    }
+
+    .gap-table td {
+      padding: 0.6rem 1rem;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    .gap-table td:first-child {
+      font-weight: 500;
+      color: var(--text);
+      white-space: nowrap;
+    }
+
+    .gap-table td:nth-child(2) { color: var(--text-dim); }
+    .gap-table td:nth-child(3) { color: var(--rose); font-style: italic; }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <!-- Header -->
+    <div class="header">
+      <div class="header__badge">Architecture & Design</div>
+      <h1>Mental Model</h1>
+      <p class="header__sub">A structured knowledge graph for AI agents. Build, query, and maintain relationship maps of codebases, organizations, and systems.</p>
+    </div>
+
+    <!-- Problem -->
+    <div class="section">
+      <div class="section__label">The Problem</div>
+      <h2>Structural Knowledge Dies Every Session</h2>
+      <p>During a coding session, an agent discovers chains of dependencies — components call hooks, hooks proxy to microservices, services depend on databases. That chain vanishes when the context window closes. Next session, re-discovery from scratch.</p>
+
+      <table class="gap-table">
+        <thead>
+          <tr><th>Tool</th><th>What It Does</th><th>Gap</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>QMD / Search</td><td>Finds documents by keyword</td><td>Can't answer "what depends on X?"</td></tr>
+          <tr><td>MEMORY.md</td><td>Free-text long-term notes</td><td>No structure, can't traverse</td></tr>
+          <tr><td>Architecture docs</td><td>Static snapshots</td><td>Stale within days</td></tr>
+          <tr><td>Chitin</td><td>Behavioral patterns</td><td>Not structural knowledge</td></tr>
+          <tr><td>Code grep</td><td>Find references in source</td><td>Cross-repo invisible, redo every session</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Solution -->
+    <div class="section">
+      <div class="section__label">Solution</div>
+      <h2>Externalized Structural Memory</h2>
+      <p>A CLI tool that lets agents build directed graphs of entities and relationships. Like the structural knowledge a human engineer carries in their head — but persistent, queryable, and shareable between agents.</p>
+
+      <div class="grid-3">
+        <div class="ve-card">
+          <h3><span class="badge badge--teal">Core</span> Models</h3>
+          <p>Named graphs for any domain: a codebase, an org chart, an infrastructure topology, a family tree.</p>
+        </div>
+        <div class="ve-card">
+          <h3><span class="badge badge--blue">Core</span> Nodes</h3>
+          <p>Typed entities: services, components, databases, people, configs. With metadata and freshness timestamps.</p>
+        </div>
+        <div class="ve-card">
+          <h3><span class="badge badge--green">Core</span> Edges</h3>
+          <p>Directed, labeled relationships: calls, depends_on, proxies_to, owns. With context metadata and weights.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Architecture -->
+    <div class="section">
+      <div class="section__label">Architecture</div>
+      <h2>System Layers</h2>
+
+      <div class="mermaid-wrap">
+        <pre class="mermaid">
+graph TD
+    CLI["CLI Layer<br/>Argument parsing, output formatting"]
+    QE["Query Engine<br/>Traversals, path finding, freshness checks"]
+    SI["Storage Interface<br/>Abstract: add, remove, query, traverse"]
+    SQL["SQLite Backend<br/>nodes/edges tables, recursive CTEs"]
+    GDB["Future: Graph Backend<br/>Kuzu, DuckDB+graph"]
+    GIT["Git Integration<br/>Commit anchoring, diff analysis"]
+
+    CLI --> QE
+    QE --> SI
+    QE --> GIT
+    SI --> SQL
+    SI -.-> GDB
+
+    classDef active fill:#1e3a5f,stroke:#d4a73a,color:#e6edf3,stroke-width:2px
+    classDef future fill:#0d2137,stroke:#2d5a8e,color:#7d8da0,stroke-dasharray:5 5
+    class CLI,QE,SI,SQL,GIT active
+    class GDB future
+        </pre>
+      </div>
+
+      <p>The <strong>storage abstraction</strong> is critical. The CLI and query engine talk to an interface, not to SQLite directly. When we migrate to a graph backend, only the storage layer changes — everything above stays the same.</p>
+    </div>
+
+    <!-- Data Model -->
+    <div class="section">
+      <div class="section__label">Data Model</div>
+      <h2>Schema</h2>
+
+      <div class="grid-3">
+        <div class="ve-card ve-card--hero">
+          <h3>Models</h3>
+          <table class="schema-table">
+            <thead><tr><th>Column</th><th>Type</th></tr></thead>
+            <tbody>
+              <tr><td><code>id</code></td><td>TEXT PK</td></tr>
+              <tr><td><code>name</code></td><td>TEXT UNIQUE</td></tr>
+              <tr><td><code>description</code></td><td>TEXT</td></tr>
+              <tr><td><code>type</code></td><td>code | org | concept | infra</td></tr>
+              <tr><td><code>source_type</code></td><td>git | manual</td></tr>
+              <tr><td><code>anchor</code></td><td>commit hash or timestamp</td></tr>
+              <tr><td><code>repo_path</code></td><td>TEXT (for code models)</td></tr>
+              <tr><td><code>created_at</code></td><td>DATETIME</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="ve-card ve-card--hero">
+          <h3>Nodes</h3>
+          <table class="schema-table">
+            <thead><tr><th>Column</th><th>Type</th></tr></thead>
+            <tbody>
+              <tr><td><code>id</code></td><td>TEXT PK</td></tr>
+              <tr><td><code>model_id</code></td><td>FK → models</td></tr>
+              <tr><td><code>label</code></td><td>TEXT</td></tr>
+              <tr><td><code>type</code></td><td>TEXT (service, component, …)</td></tr>
+              <tr><td><code>metadata</code></td><td>JSON</td></tr>
+              <tr><td><code>verified_at</code></td><td>DATETIME</td></tr>
+              <tr><td><code>created_at</code></td><td>DATETIME</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="ve-card ve-card--hero">
+          <h3>Edges</h3>
+          <table class="schema-table">
+            <thead><tr><th>Column</th><th>Type</th></tr></thead>
+            <tbody>
+              <tr><td><code>id</code></td><td>TEXT PK</td></tr>
+              <tr><td><code>source_id</code></td><td>FK → nodes</td></tr>
+              <tr><td><code>target_id</code></td><td>FK → nodes</td></tr>
+              <tr><td><code>relationship</code></td><td>TEXT (calls, depends_on, …)</td></tr>
+              <tr><td><code>metadata</code></td><td>JSON</td></tr>
+              <tr><td><code>weight</code></td><td>REAL (optional)</td></tr>
+              <tr><td><code>verified_at</code></td><td>DATETIME</td></tr>
+              <tr><td><code>created_at</code></td><td>DATETIME</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Freshness -->
+    <div class="section">
+      <div class="section__label">Freshness</div>
+      <h2>Staleness Detection</h2>
+
+      <div class="grid-2">
+        <div class="ve-card">
+          <h3><span class="badge badge--blue">Code Models</span> Git-Anchored</h3>
+          <p>Models anchor to a commit hash. Freshness check diffs the anchor against HEAD, maps changed files to nodes, and marks affected subgraphs as "needs verification".</p>
+          <div class="code-block"><span class="cmd">mm check</span> hashbranch-arch
+<span class="output">Model anchored at abc1234 (7 days ago)
+HEAD is now def5678
+Changed files:
+  src/hooks/useFleet.ts → affects: useFleet
+  src/routes/fleets/FleetView.tsx → affects: FleetView
+2 nodes need verification, 3 edges affected</span></div>
+        </div>
+
+        <div class="ve-card">
+          <h3><span class="badge badge--amber">Other Models</span> Timestamp-Based</h3>
+          <p>Non-code models track when each node/edge was last verified. Query for stale entries to decide what needs re-checking.</p>
+          <div class="code-block"><span class="cmd">mm q</span> hashbranch-team <span class="flag">--stale --days 30</span>
+<span class="output">Stale nodes (not verified in 30+ days):
+  saman (person) — last verified 45 days ago
+  deepak (person) — last verified 42 days ago
+2 stale nodes found</span></div>
+        </div>
+      </div>
+
+      <div class="ve-card" style="margin-top:1rem">
+        <h3>Git Diff → Model Update Pipeline</h3>
+        <div class="flow-row">
+          <div class="flow-node">model@abc123</div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-node">git diff abc123..HEAD</div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-node">Change Summary</div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-node">Agent Verifies</div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-node">model@def456</div>
+        </div>
+        <p style="text-align:center;color:var(--text-dim);font-size:0.85rem;margin-top:0.5rem">The diff identifies <em>which</em> nodes are affected. An agent determines <em>how</em> they changed.</p>
+      </div>
+    </div>
+
+    <!-- CLI -->
+    <div class="section">
+      <div class="section__label">Interface</div>
+      <h2>CLI Commands</h2>
+      <p>Speed-first. Every command completes in &lt;100ms for local operations. Batch mode for bulk creation.</p>
+
+      <div class="grid-2">
+        <div class="ve-card">
+          <h3>Building</h3>
+          <div class="code-block"><span class="comment"># Create a model</span>
+<span class="cmd">mm create</span> hashbranch-arch <span class="flag">--type code --repo ~/Hashbranch/hashbranch-medusa-2</span>
+
+<span class="comment"># Add nodes and edges one at a time</span>
+<span class="cmd">mm add</span> hashbranch-arch FleetView <span class="flag">--type component</span>
+<span class="cmd">mm link</span> hashbranch-arch FleetView calls useFleet
+
+<span class="comment"># Or batch after a code dive</span>
+<span class="cmd">mm batch</span> hashbranch-arch &lt;&lt;EOF
+add FleetView --type component
+add useFleet --type hook
+add fleet-rest --type service
+link FleetView calls useFleet
+link useFleet calls fleet-rest
+EOF</div>
+        </div>
+
+        <div class="ve-card">
+          <h3>Querying</h3>
+          <div class="code-block"><span class="comment"># What's connected to this node?</span>
+<span class="cmd">mm q</span> hashbranch-arch fleet-rest
+
+<span class="comment"># What's affected if I change this?</span>
+<span class="cmd">mm q</span> hashbranch-arch <span class="flag">--affects</span> fleet-rest
+
+<span class="comment"># Find the path between two nodes</span>
+<span class="cmd">mm q</span> hashbranch-arch <span class="flag">--from</span> FleetView <span class="flag">--to</span> fleet-db
+
+<span class="comment"># What's stale?</span>
+<span class="cmd">mm q</span> hashbranch-arch <span class="flag">--stale --days 14</span>
+
+<span class="comment"># Find a node across all models</span>
+<span class="cmd">mm xq</span> fleet-rest</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Real Example -->
+    <div class="section">
+      <div class="section__label">Real-World Example</div>
+      <h2>Today's E2E Debugging — Modeled</h2>
+      <p>What I discovered today while fixing Hashbranch e2e tests. Each of these relationships was found, used, and would have been lost by tomorrow.</p>
+
+      <div class="mermaid-wrap">
+        <pre class="mermaid">
+graph TD
+    FV["FleetView<br/><small>component</small>"]
+    TV["TabsView<br/><small>component (custom buttons)</small>"]
+    UF["useFleet<br/><small>hook</small>"]
+    FR["fleet-rest<br/><small>service :5020</small>"]
+    PS["isPubSubDisabled<br/><small>function</small>"]
+    NE["NODE_ENV<br/><small>config</small>"]
+    DB["fleet-db<br/><small>database</small>"]
+    AG["AG Grid<br/><small>UI library</small>"]
+    PW["Playwright Tests<br/><small>e2e test runner</small>"]
+
+    FV -->|"uses"| TV
+    FV -->|"calls"| UF
+    UF -->|"proxies to<br/>/admin/fleets"| FR
+    FR -->|"depends on"| DB
+    FR -->|"checks on startup"| PS
+    PS -->|"reads"| NE
+    FV -->|"renders"| AG
+    PW -->|"tests"| FV
+    PW -->|"interacts with"| AG
+
+    classDef comp fill:#1e3a5f,stroke:#3b82f6,color:#e6edf3
+    classDef svc fill:#1e3a5f,stroke:#059669,color:#e6edf3
+    classDef cfg fill:#1e3a5f,stroke:#d97706,color:#e6edf3
+    classDef lib fill:#1e3a5f,stroke:#be123c,color:#e6edf3
+    class FV,TV comp
+    class FR,UF svc
+    class PS,NE,DB cfg
+    class AG,PW lib
+        </pre>
+      </div>
+
+      <p>With this model, when asked "fix the fleet detail e2e tests", I could immediately query: <code>mm q --affects FleetView</code> → shows TabsView (custom buttons, not Radix), useFleet → fleet-rest (proxy, may return null), AG Grid (loading state when null). That's 5 minutes of exploration saved.</p>
+    </div>
+
+    <!-- Phases -->
+    <div class="section">
+      <div class="section__label">Roadmap</div>
+      <h2>Implementation Phases</h2>
+
+      <div class="grid-2">
+        <div class="ve-card phase-card phase-card--p1">
+          <h3><span class="badge badge--green">Phase 1</span> Core MVP</h3>
+          <p>Model/Node/Edge CRUD, basic queries (neighbors, depth-N traversal), batch mode, JSON export/import. Enough to start using immediately.</p>
+        </div>
+
+        <div class="ve-card phase-card phase-card--p2">
+          <h3><span class="badge badge--blue">Phase 2</span> Intelligence</h3>
+          <p>Path finding (A→B), blast radius, dependency chains, git commit anchoring, staleness detection, cross-model edges.</p>
+        </div>
+
+        <div class="ve-card phase-card phase-card--p3">
+          <h3><span class="badge badge--amber">Phase 3</span> Agent Integration</h3>
+          <p>OpenClaw skill, heartbeat-driven freshness, sub-agent model updates from diffs, DOT/Graphviz export, QMD integration.</p>
+        </div>
+
+        <div class="ve-card phase-card phase-card--p4">
+          <h3><span class="badge badge--rose">Phase 4</span> Graph Backend</h3>
+          <p>Storage abstraction swap to Kuzu or equivalent. Performance benchmarks, migration tooling, advanced traversals.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tech -->
+    <div class="section">
+      <div class="section__label">Technology</div>
+      <h2>Stack</h2>
+
+      <div class="grid-3">
+        <div class="ve-card">
+          <h3>TypeScript + Node</h3>
+          <p>npm package. Consistent with Chitin, Bookworm, and the rest of the agent toolkit. <code>npx tsx</code> or compiled.</p>
+        </div>
+        <div class="ve-card">
+          <h3>better-sqlite3</h3>
+          <p>Synchronous, fast, zero-config embedded SQLite. Single file at <code>~/.config/mental-model/models.db</code>.</p>
+        </div>
+        <div class="ve-card">
+          <h3>Commander.js</h3>
+          <p>CLI framework with subcommands, flags, and help generation. Proven ecosystem.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Design Decisions -->
+    <div class="section">
+      <div class="section__label">Decisions</div>
+      <h2>Key Design Choices</h2>
+
+      <div class="ve-card">
+        <h3>Single DB file, not per-model files</h3>
+        <p>Cross-model queries need all models accessible. A single <code>models.db</code> with <code>model_id</code> as partition gives both isolation (filter by model) and integration (cross-model queries). Separate files would need multiple DB connections and can't do cross-model joins.</p>
+      </div>
+
+      <div class="ve-card">
+        <h3>SQLite first, graph DB planned</h3>
+        <p>SQLite works today with zero dependencies. The API layer stays the same regardless of backend. We'll learn what queries we actually run before committing to a graph engine. Storage abstraction makes the swap clean.</p>
+      </div>
+
+      <div class="ve-card">
+        <h3>CLI, not API</h3>
+        <p>Agents interact via shell commands. A CLI works with any agent framework — OpenClaw, Claude Code, Codex, anything. An API layer can be added later if a web UI is needed.</p>
+      </div>
+
+      <div class="ve-card">
+        <h3>Separate from QMD and Chitin</h3>
+        <p>Different concerns. QMD = document retrieval. Chitin = behavioral patterns. Mental Model = structural relationships. They can integrate (QMD indexes model exports, Chitin informs model-building) but shouldn't merge.</p>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>
