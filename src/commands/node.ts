@@ -91,12 +91,14 @@ export function registerNodeCommands(program: Command, getStorage: () => Storage
     .action((modelName: string, nodeRef: string, opts: { label?: string; type?: string; meta?: string[] }) => {
       try {
         const storage = getStorage();
+        const model = storage.getModel(modelName);
+        if (!model) throw new Error(`Model not found: ${modelName}`);
         const node = resolveNode(storage, modelName, nodeRef);
         const updated = storage.updateNode(node.id, {
           label: opts.label,
           type: opts.type,
           metadata: opts.meta ? parseMeta(opts.meta) : undefined,
-        });
+        }, model.id);
         if (isJsonMode()) {
           outputJson(updated);
         } else {

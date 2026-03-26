@@ -191,6 +191,70 @@ describe('Adding to Overlay', () => {
   });
 });
 
+// ── Modifying Parent Nodes from Overlay ─────────────
+
+describe('Modifying in Overlay', () => {
+  it('modifies a parent node from overlay without changing parent', () => {
+    const { model, nodes } = setupParentModel();
+    const branch = storage.createBranch(model.id, 'feature/rename');
+
+    // Modify the api-server label in overlay context
+    const updated = storage.updateNode(nodes.api.id, { label: 'api-gateway' }, branch.id);
+    expect(updated.label).toBe('api-gateway');
+
+    // Overlay sees the modified node
+    const branchNodes = storage.listNodes(branch.id);
+    const apiNode = branchNodes.find(n => n.id === nodes.api.id);
+    expect(apiNode).toBeTruthy();
+    expect(apiNode!.label).toBe('api-gateway');
+
+    // Parent still has original label
+    const parentNode = storage.getNode(nodes.api.id);
+    expect(parentNode!.label).toBe('api-server');
+  });
+
+  it('modifies a parent node type in overlay', () => {
+    const { model, nodes } = setupParentModel();
+    const branch = storage.createBranch(model.id, 'feature/retype');
+
+    storage.updateNode(nodes.api.id, { type: 'microservice' }, branch.id);
+
+    // Overlay sees modified type
+    const branchNodes = storage.listNodes(branch.id);
+    const apiNode = branchNodes.find(n => n.id === nodes.api.id);
+    expect(apiNode!.type).toBe('microservice');
+
+    // Parent unchanged
+    const parentNode = storage.getNode(nodes.api.id);
+    expect(parentNode!.type).toBe('service');
+  });
+
+  it('modifies overlay-own node normally', () => {
+    const { model } = setupParentModel();
+    const branch = storage.createBranch(model.id, 'feature/x');
+
+    const newNode = storage.addNode(branch.id, { label: 'new-thing', type: 'service' });
+    const updated = storage.updateNode(newNode.id, { label: 'renamed-thing' }, branch.id);
+    expect(updated.label).toBe('renamed-thing');
+
+    // Verify it's actually changed in DB
+    const found = storage.getNode(newNode.id);
+    expect(found!.label).toBe('renamed-thing');
+  });
+
+  it('merged modification applies to parent', () => {
+    const { model, nodes } = setupParentModel();
+    const branch = storage.createBranch(model.id, 'feature/rename');
+
+    storage.updateNode(nodes.api.id, { label: 'api-gateway' }, branch.id);
+    storage.mergeBranch(model.id, 'feature/rename');
+
+    // Parent should now have the renamed node
+    const parentNode = storage.getNode(nodes.api.id);
+    expect(parentNode!.label).toBe('api-gateway');
+  });
+});
+
 // ── Removing Nodes/Edges from Overlay ───────────────
 
 describe('Removing from Overlay', () => {

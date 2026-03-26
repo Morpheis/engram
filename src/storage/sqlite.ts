@@ -343,16 +343,17 @@ export class SqliteStorage implements StorageInterface {
     return null;
   }
 
-  updateNode(nodeId: string, updates: Partial<NodeInput>): GraphNode {
+  updateNode(nodeId: string, updates: Partial<NodeInput>, contextModelId?: string): GraphNode {
     const node = this.getNode(nodeId);
     if (!node) throw new Error(`Node not found: ${nodeId}`);
 
     const now = new Date().toISOString();
     const newLabel = updates.label ?? node.label;
     const newType = updates.type !== undefined ? updates.type : node.type;
-    const newMeta = updates.metadata
-      ? JSON.stringify({ ...node.metadata, ...updates.metadata })
-      : JSON.stringify(node.metadata);
+    const newMetaObj = updates.metadata
+      ? { ...node.metadata, ...updates.metadata }
+      : node.metadata;
+    const newMeta = JSON.stringify(newMetaObj);
 
     // Resolve type_id if type changed
     let typeId = node.typeId;
@@ -362,6 +363,36 @@ export class SqliteStorage implements StorageInterface {
         typeId = typeDef?.id ?? null;
       } else {
         typeId = null;
+      }
+    }
+
+    // If operating in overlay context and node belongs to the parent, record a modify_node change
+    if (contextModelId) {
+      const parentId = this.getParentModelId(contextModelId);
+      if (parentId && node.modelId === parentId) {
+        // Record the modification in overlay_changes
+        this.recordOverlayChange(contextModelId, 'modify_node', nodeId, {
+          label: node.label,
+          type: node.type,
+          typeId: node.typeId,
+          metadata: node.metadata,
+        }, {
+          label: newLabel,
+          type: newType,
+          typeId: typeId,
+          metadata: newMetaObj,
+        });
+
+        // Don't actually modify the parent node — the overlay_changes record handles it
+        // Return a virtual updated node
+        return {
+          ...node,
+          label: newLabel,
+          type: newType ?? null,
+          typeId: typeId,
+          metadata: newMetaObj,
+          updatedAt: now,
+        };
       }
     }
 

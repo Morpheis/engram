@@ -147,7 +147,7 @@ export interface StorageInterface {
   addNode(modelId: string, node: NodeInput): GraphNode;
   getNode(nodeId: string): GraphNode | null;
   findNode(modelId: string, label: string): GraphNode | null;
-  updateNode(nodeId: string, updates: Partial<NodeInput>): GraphNode;
+  updateNode(nodeId: string, updates: Partial<NodeInput>, contextModelId?: string): GraphNode;
   deleteNode(nodeId: string, contextModelId?: string): void;
   listNodes(modelId: string, filter?: { type?: string }): GraphNode[];
   verifyNode(nodeId: string): void;
