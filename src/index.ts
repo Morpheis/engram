@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
-import { mkdirSync } from 'fs';
-import { join } from 'path';
+import { mkdirSync, existsSync, readFileSync } from 'fs';
+import { join, resolve, dirname } from 'path';
 import { homedir } from 'os';
+import { fileURLToPath } from 'url';
 import { SqliteStorage } from './storage/sqlite.js';
 import { setJsonMode } from './utils/output.js';
 import { registerModelCommands } from './commands/model.js';
@@ -56,6 +57,27 @@ registerRelCommands(program, getStorage);
 registerBranchCommands(program, getStorage);
 registerGitCommands(program, getStorage);
 registerPathCommands(program, getStorage);
+
+// === skill command (no storage needed) ===
+program
+  .command('skill')
+  .description('Display the SKILL.md — teaches agents how to use mm')
+  .option('--path', 'Print the file path instead of the content')
+  .action((opts) => {
+    const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+    const skillPath = join(packageRoot, 'skill', 'SKILL.md');
+
+    if (!existsSync(skillPath)) {
+      console.error(`SKILL.md not found at ${skillPath}`);
+      process.exit(1);
+    }
+
+    if (opts.path) {
+      console.log(skillPath);
+    } else {
+      console.log(readFileSync(skillPath, 'utf-8'));
+    }
+  });
 
 program.parse();
 
