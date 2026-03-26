@@ -73,7 +73,7 @@ alias mm='cd ~/Personal/mental-model && npx tsx src/index.ts'
 | `mm q <model> --stale [--days N]` | Nodes not verified in N+ days |
 | `mm q <model> --orphans` | Nodes with no edges |
 | `mm path <model> <from> <to> [--max-depth N]` | Find all paths between two nodes |
-| `mm xq <query>` | Search across all models |
+| `mm search <query> [--model m] [--exclude m]` | Search across models (see Search section) |
 
 ### Types & Relationships
 
@@ -103,6 +103,18 @@ alias mm='cd ~/Personal/mental-model && npx tsx src/index.ts'
 | `mm refresh <model>` | Update anchor to HEAD, mark all verified |
 | `mm diff <model>` | Detailed file-by-file diff with subgraph impact |
 | `mm stale <model> [--days N]` | Show stale nodes and edges |
+
+### Search
+
+| Command | Description |
+|---|---|
+| `mm search <query>` | Search across ALL models (nodes, types, metadata) |
+| `mm search <query> --model <name>` | Search within a specific model |
+| `mm search <query> --limit <N>` | Max results (default: 5) |
+| `mm search <query> --exclude <name>` | Skip a model (repeatable) |
+| `mm search <query> --json` | JSON output for programmatic use |
+
+Results include each matching node with its 1-hop edge neighborhood, grouped by model.
 
 ### Cross-Model & Batch
 

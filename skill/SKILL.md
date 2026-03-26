@@ -63,8 +63,19 @@ mm q <model> -t service           # all nodes of type (includes subtypes)
 mm q <model> --stale --days 14    # nodes not verified in 14+ days
 mm q <model> --orphans            # nodes with no edges
 mm path <model> <from> <to> [--max-depth N]  # all paths between two nodes
-mm xq <query>                     # search across all models
 ```
+
+### Search (cross-model)
+
+```bash
+mm search <query>                 # search ALL models (labels, types, metadata)
+mm search <query> --model myapp   # search within one model
+mm search <query> --limit 10      # max results (default 5)
+mm search <query> --exclude zink-family --exclude test  # skip models
+mm search <query> --json          # JSON output for recall/automation
+```
+
+Results show each matching node + its 1-hop edges, grouped by model.
 
 ### Types & Relationships
 

@@ -7,20 +7,29 @@
 - CLI: `npx tsx src/index.ts <command>` (or `mm` when globally linked)
 - DB: `~/.config/mental-model/models.db` (override with `MM_DB_PATH`)
 
-### Phase 2: TODO
-- Path finding (A → B) — `findPaths` is implemented in storage but not exposed in CLI yet
-- Git commit anchoring + `mm check` / `mm refresh` / `mm diff`
-- Stale query improvements for code models (tie to git diff)
-- `--from` / `--to` path query in CLI
+### Phase 2: COMPLETE ✅
+- Batch command, verify, check, cross-model links, JSON-LD export
+- Path finding (`mm path`) exposed in CLI
+- Git integration: `mm check`, `mm refresh`, `mm diff`, `mm stale`
 
-### Phase 3: TODO
-- OpenClaw skill (SKILL.md)
-- Heartbeat freshness checks
-- DOT export for Graphviz
-- QMD integration
+### Phase 3: COMPLETE ✅
+- DOT/Graphviz export with domain-colored nodes and cluster support
+- OpenClaw skill (SKILL.md) with best practices, org chart guidance
+- Cross-model search: `mm search <query>` with `--exclude`, `--model`, `--limit`, `--json`
+- openclaw-recall integration (MentalModelSearchSource with auto-detection)
 
 ### Phase 4: TODO
-- Graph DB migration (Kuzu)
+- Graph DB migration (Kuzu) — only when scale demands it
+- FTS5 for faster text search (currently LIKE-based, fine for current scale)
+
+### Current Test Count: 305 tests across 14 files
+
+## Active Models
+- `chitin` (code) — 19 nodes, 27 edges. Personality persistence layer.
+- `oathkeeper` (code) — 20 nodes, 22 edges. Accountability escrow smart contract + SDK.
+- `hashbranch` (org) — 4 people. Current org chart.
+- `hashbranch-e2e` (code) — E2E test debugging relationships.
+- `zink-family` (org) — Family relationships.
 
 ## Saved Models
 
@@ -40,7 +49,7 @@ Key insights captured in node metadata:
 To import: `mm import hashbranch-e2e-model.json`
 
 ## Next Steps
-1. Build Phase 2 (git anchoring is the highest-value feature)
-2. Create an OpenClaw skill so I can use `mm` commands easily
-3. Start building models for other repos as I work on them
-4. Consider renaming from `mm` to something more distinctive
+1. Start building models for other repos as I work on them
+2. Consider renaming from `mm` to something more distinctive
+3. Enable mental-model source in Boss's openclaw-recall config
+4. Explore FTS5 if LIKE-based search becomes a bottleneck
