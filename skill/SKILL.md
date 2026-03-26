@@ -274,3 +274,35 @@ engram stale myapp --days 7        # what hasn't been verified this week?
 engram verify myapp API            # mark a node as freshly verified
 engram refresh myapp               # mark everything verified (after review)
 ```
+
+### Maintain engrams with git diffs
+
+When code changes, use `engram check` to see which nodes are affected, then update:
+
+```bash
+# 1. See what changed since last review
+engram check myapp
+# Output: lists changed files → affected nodes → affected edges
+
+# 2. For cosmetic/rename changes (no structural change): just refresh
+engram refresh myapp
+
+# 3. For structural changes (new files, new dependencies, removed modules):
+#    a. Check what's new/deleted
+engram diff myapp
+#    b. Add nodes for new files
+engram add myapp NewService --type service -m file=src/new-service.ts
+engram link myapp API calls NewService
+#    c. Remove nodes for deleted files
+engram rm myapp OldService
+#    d. Update metadata if file paths changed
+engram update myapp SomeModule -m file=src/new-path/module.ts
+#    e. Refresh to anchor at new HEAD
+engram refresh myapp
+```
+
+**Key principle:** `check` shows you what's stale, `diff` shows the detail, and `refresh` marks everything verified. The git anchor tracks *when you last reviewed the model* — it's not automatic sync, it's aided maintenance.
+
+**The file→node mapping is the bridge.** Always include `file=path/to/file.ts` in node metadata — this is what `check` and `diff` use to map git changes to graph nodes. Without it, the node won't appear in staleness reports.
+
+**After a rename/refactor:** If you renamed files but the structure is the same, just update file metadata and refresh. If you restructured (split a module, merged services), update the graph to match and then refresh.
