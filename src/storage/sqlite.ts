@@ -1578,7 +1578,46 @@ export class SqliteStorage implements StorageInterface {
       }
     }
 
+    // Rank results by relevance: label match > type match > metadata match
+    const lowerTerms = terms.map(t => t.toLowerCase());
+    results.sort((a, b) => {
+      const scoreA = this.computeSearchRelevance(a.node, lowerTerms);
+      const scoreB = this.computeSearchRelevance(b.node, lowerTerms);
+      return scoreB - scoreA;
+    });
+
     return results.slice(0, limit);
+  }
+
+  /**
+   * Compute a simple relevance score for search ranking.
+   * Label match (especially exact) scores highest, then type, then metadata.
+   */
+  private computeSearchRelevance(node: GraphNode, lowerTerms: string[]): number {
+    let score = 0;
+    const label = node.label.toLowerCase();
+    const type = (node.type ?? "").toLowerCase();
+    const metaStr = JSON.stringify(node.metadata).toLowerCase();
+
+    for (const term of lowerTerms) {
+      // Exact label match (highest value)
+      if (label === term) score += 100;
+      // Label contains term
+      else if (label.includes(term)) score += 50;
+      // Type matches
+      if (type === term) score += 20;
+      else if (type.includes(term)) score += 10;
+      // Metadata contains term (lowest — broadest match)
+      if (metaStr.includes(term)) score += 5;
+    }
+
+    // Bonus: more matching terms = more relevant
+    const matchingTerms = lowerTerms.filter(t =>
+      label.includes(t) || type.includes(t) || metaStr.includes(t)
+    ).length;
+    score += matchingTerms * 10;
+
+    return score;
   }
 
   /** Get all edges (incoming and outgoing) for a node */
