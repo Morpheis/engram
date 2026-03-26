@@ -1073,6 +1073,103 @@ export class SqliteStorage implements StorageInterface {
     this.db.prepare('DELETE FROM models WHERE id = ?').run(overlay.id);
   }
 
+  // --- Git Integration ---
+
+  getModelAnchor(modelId: string): { anchor: string | null; repoPath: string | null; branch: string | null } {
+    const model = this.getModel(modelId);
+    if (!model) throw new Error(`Model not found: ${modelId}`);
+    return {
+      anchor: model.anchor,
+      repoPath: model.repoPath,
+      branch: model.branch,
+    };
+  }
+
+  updateModelAnchor(modelId: string, anchor: string): void {
+    const model = this.getModel(modelId);
+    if (!model) throw new Error(`Model not found: ${modelId}`);
+    const now = new Date().toISOString();
+    this.db.prepare('UPDATE models SET anchor = ?, updated_at = ? WHERE id = ?').run(anchor, now, model.id);
+  }
+
+  refreshAllVerified(modelId: string): void {
+    const model = this.getModel(modelId);
+    if (!model) throw new Error(`Model not found: ${modelId}`);
+    const now = new Date().toISOString();
+    this.db.prepare('UPDATE nodes SET verified_at = ?, updated_at = ? WHERE model_id = ?').run(now, now, model.id);
+    // Update edges where source node belongs to this model
+    this.db.prepare(`
+      UPDATE edges SET verified_at = ?, updated_at = ?
+      WHERE source_id IN (SELECT id FROM nodes WHERE model_id = ?)
+    `).run(now, now, model.id);
+  }
+
+  findNodesByFile(modelId: string, filePaths: string[]): Map<string, GraphNode[]> {
+    const model = this.getModel(modelId);
+    if (!model) throw new Error(`Model not found: ${modelId}`);
+
+    const nodes = this.listNodes(model.id);
+    const result = new Map<string, GraphNode[]>();
+
+    for (const filePath of filePaths) {
+      const matching: GraphNode[] = [];
+
+      for (const node of nodes) {
+        const meta = node.metadata;
+        const nodeFile = meta.file as string | undefined;
+
+        // Exact match on metadata.file
+        if (nodeFile && nodeFile === filePath) {
+          matching.push(node);
+          continue;
+        }
+
+        // Partial match: metadata.file ends with the changed file path
+        if (nodeFile && nodeFile.endsWith(filePath)) {
+          matching.push(node);
+          continue;
+        }
+
+        // Partial match: changed file path ends with metadata.file
+        if (nodeFile && filePath.endsWith(nodeFile)) {
+          matching.push(node);
+          continue;
+        }
+
+        // Fuzzy fallback: file path contains node label (e.g., FleetView.tsx matches node FleetView)
+        const fileName = filePath.split('/').pop() ?? filePath;
+        const baseName = fileName.replace(/\.[^.]+$/, ''); // strip extension
+        if (baseName === node.label) {
+          matching.push(node);
+          continue;
+        }
+      }
+
+      if (matching.length > 0) {
+        result.set(filePath, matching);
+      }
+    }
+
+    return result;
+  }
+
+  findStaleEdges(modelId: string, olderThanDays: number): Edge[] {
+    const model = this.getModel(modelId);
+    if (!model) throw new Error(`Model not found: ${modelId}`);
+
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - olderThanDays);
+    const cutoffStr = cutoff.toISOString();
+
+    const rows = this.db.prepare(`
+      SELECT e.* FROM edges e
+      JOIN nodes n ON e.source_id = n.id
+      WHERE n.model_id = ? AND e.verified_at < ?
+      ORDER BY e.verified_at
+    `).all(model.id, cutoffStr) as EdgeRow[];
+    return rows.map(toEdge);
+  }
+
   // --- Overlay Resolution Helpers ---
 
   /** Check if a model is a branch overlay */

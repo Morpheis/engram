@@ -203,6 +203,13 @@ export interface StorageInterface {
   mergeBranch(modelId: string, branchName: string): void;
   deleteBranch(modelId: string, branchName: string): void;
 
+  // Git Integration
+  getModelAnchor(modelId: string): { anchor: string | null; repoPath: string | null; branch: string | null };
+  updateModelAnchor(modelId: string, anchor: string): void;
+  refreshAllVerified(modelId: string): void;  // update verified_at on all nodes and edges
+  findNodesByFile(modelId: string, filePaths: string[]): Map<string, GraphNode[]>;  // file path → matching nodes
+  findStaleEdges(modelId: string, olderThanDays: number): Edge[];
+
   // Lifecycle
   close(): void;
 }
