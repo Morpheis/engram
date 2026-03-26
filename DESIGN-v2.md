@@ -257,3 +257,11 @@ mm q <model> --type service                # includes subtypes (microservice, et
 - `mm check` — diff anchor vs HEAD, map to affected nodes
 - `mm refresh` — update anchor, mark verified
 - `mm diff` — detailed change summary with affected subgraph
+
+### Phase 3: Agent Integration
+- OpenClaw skill (SKILL.md) for `mm` commands
+- Heartbeat-driven freshness checks
+- DOT export for Graphviz visualization
+- QMD integration (index model exports)
+- **MCP server** — wrap `mm` queries in an MCP server so any AI agent framework (Cursor, Claude Desktop, Codex, etc.) can query the knowledge graph through standard tooling
+- **Structured aspects on nodes** — inspired by DataHub's aspect model. Instead of flat `metadata` JSON, support structured aspects (ownership, location, configuration) that can be queried and updated independently
