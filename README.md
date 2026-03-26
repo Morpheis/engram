@@ -1,4 +1,4 @@
-# Engram (`mm`)
+# Engram
 ### Persistent knowledge traces for AI agents
 
 *An [engram](https://en.wikipedia.org/wiki/Engram_(neuropsychology)) is the physical trace a memory leaves in the brain. This tool gives AI agents the same thing — persistent, structured, queryable knowledge that survives session restarts.*
@@ -29,11 +29,11 @@ npm install
 npx tsx src/index.ts <command>
 
 # Or with alias
-alias mm='cd ~/Personal/engram && npx tsx src/index.ts'
+alias engram='cd ~/Personal/engram && npx tsx src/index.ts'
 ```
 
 **Database location:** `~/.config/engram/models.db`  
-**Override:** `MM_DB_PATH=/custom/path.db npx tsx src/index.ts <command>`
+**Override:** `ENGRAM_DB_PATH=/custom/path.db npx tsx src/index.ts <command>`
 
 ## Command Reference
 
@@ -41,81 +41,81 @@ alias mm='cd ~/Personal/engram && npx tsx src/index.ts'
 
 | Command | Description |
 |---|---|
-| `mm create <name> [-t type] [-d desc] [-r repo]` | Create a model (types: code, org, concept, infra) |
-| `mm list` | List all models |
-| `mm delete <name>` | Delete a model and all its data |
-| `mm export <name> [-f format] [-o file]` | Export (formats: jsonld, json, dot) |
-| `mm import <file>` | Import from JSON or JSON-LD file |
+| `engram create <name> [-t type] [-d desc] [-r repo]` | Create a model (types: code, org, concept, infra) |
+| `engram list` | List all models |
+| `engram delete <name>` | Delete a model and all its data |
+| `engram export <name> [-f format] [-o file]` | Export (formats: jsonld, json, dot) |
+| `engram import <file>` | Import from JSON or JSON-LD file |
 
 ### Nodes
 
 | Command | Description |
 |---|---|
-| `mm add <model> <label> [--type t] [-m k=v]` | Add a node with optional type and metadata |
-| `mm rm <model> <node>` | Remove a node and its edges |
-| `mm update <model> <node> [--label] [--type] [-m]` | Update node properties |
-| `mm verify <model> <node>` | Mark a node as freshly verified |
-| `mm nodes <model> [-t type]` | List nodes, optionally filtered by type |
+| `engram add <model> <label> [--type t] [-m k=v]` | Add a node with optional type and metadata |
+| `engram rm <model> <node>` | Remove a node and its edges |
+| `engram update <model> <node> [--label] [--type] [-m]` | Update node properties |
+| `engram verify <model> <node>` | Mark a node as freshly verified |
+| `engram nodes <model> [-t type]` | List nodes, optionally filtered by type |
 
 ### Edges
 
 | Command | Description |
 |---|---|
-| `mm link <model> <src> <rel> <tgt> [-m k=v]` | Create a directed edge |
-| `mm unlink <model> <src> <rel> <tgt>` | Remove an edge |
-| `mm edges <model> [--from] [--to] [--rel]` | List edges with optional filters |
+| `engram link <model> <src> <rel> <tgt> [-m k=v]` | Create a directed edge |
+| `engram unlink <model> <src> <rel> <tgt>` | Remove an edge |
+| `engram edges <model> [--from] [--to] [--rel]` | List edges with optional filters |
 
 ### Queries
 
 | Command | Description |
 |---|---|
-| `mm q <model> <node> [--depth N]` | Node neighborhood (default depth: 1) |
-| `mm q <model> --affects <node>` | Reverse traversal: what breaks if this changes? |
-| `mm q <model> --depends-on <node>` | Forward traversal: what does this need? |
-| `mm q <model> -t <type>` | All nodes of type (includes subtypes) |
-| `mm q <model> --stale [--days N]` | Nodes not verified in N+ days |
-| `mm q <model> --orphans` | Nodes with no edges |
-| `mm path <model> <from> <to> [--max-depth N]` | Find all paths between two nodes |
-| `mm search <query> [--model m] [--exclude m]` | Search across models (see Search section) |
+| `engram q <model> <node> [--depth N]` | Node neighborhood (default depth: 1) |
+| `engram q <model> --affects <node>` | Reverse traversal: what breaks if this changes? |
+| `engram q <model> --depends-on <node>` | Forward traversal: what does this need? |
+| `engram q <model> -t <type>` | All nodes of type (includes subtypes) |
+| `engram q <model> --stale [--days N]` | Nodes not verified in N+ days |
+| `engram q <model> --orphans` | Nodes with no edges |
+| `engram path <model> <from> <to> [--max-depth N]` | Find all paths between two nodes |
+| `engram search <query> [--model m] [--exclude m]` | Search across models (see Search section) |
 
 ### Types & Relationships
 
 | Command | Description |
 |---|---|
-| `mm type list` | Show type hierarchy as tree |
-| `mm type add <label> [--parent p] [--domain d]` | Add a custom type |
-| `mm type rm <label>` | Remove a custom type |
-| `mm rel list` | List relationship types with inverses |
-| `mm rel add <label> [--inverse inv]` | Add a custom relationship |
-| `mm rel rm <label>` | Remove a custom relationship |
+| `engram type list` | Show type hierarchy as tree |
+| `engram type add <label> [--parent p] [--domain d]` | Add a custom type |
+| `engram type rm <label>` | Remove a custom type |
+| `engram rel list` | List relationship types with inverses |
+| `engram rel add <label> [--inverse inv]` | Add a custom relationship |
+| `engram rel rm <label>` | Remove a custom relationship |
 
 ### Branches
 
 | Command | Description |
 |---|---|
-| `mm branch <model> <name>` | Create a branch overlay |
-| `mm branch <model> --list` | List branch overlays |
-| `mm merge <model> <name>` | Merge overlay into parent |
-| `mm branch <model> <name> --delete` | Discard overlay |
+| `engram branch <model> <name>` | Create a branch overlay |
+| `engram branch <model> --list` | List branch overlays |
+| `engram merge <model> <name>` | Merge overlay into parent |
+| `engram branch <model> <name> --delete` | Discard overlay |
 
 ### Git Integration
 
 | Command | Description |
 |---|---|
-| `mm check <model>` | Compare anchor vs HEAD, show affected nodes |
-| `mm refresh <model>` | Update anchor to HEAD, mark all verified |
-| `mm diff <model>` | Detailed file-by-file diff with subgraph impact |
-| `mm stale <model> [--days N]` | Show stale nodes and edges |
+| `engram check <model>` | Compare anchor vs HEAD, show affected nodes |
+| `engram refresh <model>` | Update anchor to HEAD, mark all verified |
+| `engram diff <model>` | Detailed file-by-file diff with subgraph impact |
+| `engram stale <model> [--days N]` | Show stale nodes and edges |
 
 ### Search
 
 | Command | Description |
 |---|---|
-| `mm search <query>` | Search across ALL models (nodes, types, metadata) |
-| `mm search <query> --model <name>` | Search within a specific model |
-| `mm search <query> --limit <N>` | Max results (default: 5) |
-| `mm search <query> --exclude <name>` | Skip a model (repeatable) |
-| `mm search <query> --json` | JSON output for programmatic use |
+| `engram search <query>` | Search across ALL models (nodes, types, metadata) |
+| `engram search <query> --model <name>` | Search within a specific model |
+| `engram search <query> --limit <N>` | Max results (default: 5) |
+| `engram search <query> --exclude <name>` | Skip a model (repeatable) |
+| `engram search <query> --json` | JSON output for programmatic use |
 
 Results include each matching node with its 1-hop edge neighborhood, grouped by model.
 
@@ -123,44 +123,44 @@ Results include each matching node with its 1-hop edge neighborhood, grouped by 
 
 | Command | Description |
 |---|---|
-| `mm xlink <m1> <n1> <rel> <m2> <n2>` | Cross-model edge |
-| `mm batch <model>` | Read commands from stdin |
+| `engram xlink <m1> <n1> <rel> <m2> <n2>` | Cross-model edge |
+| `engram batch <model>` | Read commands from stdin |
 
 ## Example Workflows
 
 ### Map a codebase
 
 ```bash
-mm create myapp -t code -d "My application" -r /path/to/repo
-mm add myapp Frontend --type component -m file=src/App.tsx
-mm add myapp API --type service -m file=src/api/server.ts -m port=3000
-mm add myapp DB --type database -m engine=postgres
-mm link myapp Frontend calls API -m via="REST /api"
-mm link myapp API depends-on DB
-mm refresh myapp
+engram create myapp -t code -d "My application" -r /path/to/repo
+engram add myapp Frontend --type component -m file=src/App.tsx
+engram add myapp API --type service -m file=src/api/server.ts -m port=3000
+engram add myapp DB --type database -m engine=postgres
+engram link myapp Frontend calls API -m via="REST /api"
+engram link myapp API depends-on DB
+engram refresh myapp
 ```
 
 ### Query blast radius
 
 ```bash
 # What breaks if the database changes?
-mm q myapp --affects DB
+engram q myapp --affects DB
 
 # How does the frontend reach the database?
-mm path myapp Frontend DB
+engram path myapp Frontend DB
 
 # What has changed since last review?
-mm check myapp
+engram check myapp
 ```
 
 ### Visualize with Graphviz
 
 ```bash
 # Generate a PNG
-mm export myapp -f dot | dot -Tpng -o architecture.png
+engram export myapp -f dot | dot -Tpng -o architecture.png
 
 # Generate an SVG
-mm export myapp -f dot | dot -Tsvg -o architecture.svg
+engram export myapp -f dot | dot -Tsvg -o architecture.svg
 ```
 
 DOT export maps node types to shapes and colors:
@@ -175,8 +175,8 @@ DOT export maps node types to shapes and colors:
 ### Model an org chart
 
 ```bash
-mm create acme -t org -d "Acme Corp organizational structure"
-mm batch acme <<EOF
+engram create acme -t org -d "Acme Corp organizational structure"
+engram batch acme <<EOF
 add CEO --type person -m role="CEO & Founder"
 add VP-Eng --type person -m role="VP Engineering"
 add Dev-1 --type person -m role="Senior Engineer"
@@ -189,10 +189,10 @@ link Dev-2 reports_to CEO
 EOF
 
 # Who reports to the CEO (direct + transitive)?
-mm q acme --affects CEO
+engram q acme --affects CEO
 
 # What's the reporting chain from Dev-1 to CEO?
-mm path acme Dev-1 CEO
+engram path acme Dev-1 CEO
 ```
 
 Multiple `reports_to` edges model dual-reporting (e.g., matrix orgs) naturally. Use metadata for employment details like part-time status rather than separate node types.
@@ -201,10 +201,10 @@ Multiple `reports_to` edges model dual-reporting (e.g., matrix orgs) naturally. 
 
 ```bash
 # Export with semantic context
-mm export myapp -f jsonld -o myapp.jsonld
+engram export myapp -f jsonld -o myapp.jsonld
 
 # Import on another machine / by another agent
-mm import myapp.jsonld
+engram import myapp.jsonld
 ```
 
 JSON-LD exports include a `@context` object with schema URIs, making the data self-describing for any JSON-LD-aware consumer.
@@ -249,7 +249,7 @@ thing
     └── rule
 ```
 
-Extend with `mm type add <label> --parent <existing>`.
+Extend with `engram type add <label> --parent <existing>`.
 
 ## Architecture
 

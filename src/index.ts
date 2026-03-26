@@ -28,7 +28,7 @@ let storage: SqliteStorage | null = null;
 function getStorage(): SqliteStorage {
   if (!storage) {
     mkdirSync(DB_DIR, { recursive: true });
-    const dbPath = process.env.MM_DB_PATH ?? DB_PATH;
+    const dbPath = process.env.ENGRAM_DB_PATH ?? DB_PATH;
     storage = new SqliteStorage(dbPath);
   }
   return storage;
@@ -37,7 +37,7 @@ function getStorage(): SqliteStorage {
 const program = new Command();
 
 program
-  .name('mm')
+  .name('engram')
   .description('Engram — a structured knowledge graph for AI agents')
   .version('0.1.0')
   .option('--json', 'Output in JSON format')
@@ -63,7 +63,7 @@ registerSearchCommand(program, getStorage);
 // === skill command (no storage needed) ===
 program
   .command('skill')
-  .description('Display the SKILL.md — teaches agents how to use mm')
+  .description('Display the SKILL.md — teaches agents how to use engram')
   .option('--path', 'Print the file path instead of the content')
   .action((opts) => {
     const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');

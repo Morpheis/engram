@@ -5,7 +5,7 @@
 ### Phase 1: COMPLETE ✅
 - 58 tests passing, all commands working
 - CLI: `npx tsx src/index.ts <command>` (or `mm` when globally linked)
-- DB: `~/.config/engram/models.db` (override with `MM_DB_PATH`)
+- DB: `~/.config/engram/models.db` (override with `ENGRAM_DB_PATH`)
 
 ### Phase 2: COMPLETE ✅
 - Batch command, verify, check, cross-model links, JSON-LD export

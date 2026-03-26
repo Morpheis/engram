@@ -6,7 +6,7 @@ metadata:
   version: "2.0.0"
 ---
 
-# Engram (mm)
+# Engram
 *Persistent knowledge traces for AI agents — like a brain's memory engrams, but queryable.*
 
 A persistent knowledge graph for AI agents. Store nodes (components, services, people, concepts) and edges (calls, depends_on, owns) in a local SQLite database. Survives sessions. Query dependencies, find paths, check freshness against git, export for visualization.
@@ -17,9 +17,9 @@ A persistent knowledge graph for AI agents. Store nodes (components, services, p
 cd ~/Personal/engram && npx tsx src/index.ts <command>
 ```
 
-Alias shorthand used below: `mm <command>` (substitute the full path above).
+Alias shorthand used below: `engram <command>` (substitute the full path above).
 
-**Database:** `~/.config/engram/models.db` (override: `MM_DB_PATH=/path/to/db`)
+**Database:** `~/.config/engram/models.db` (override: `ENGRAM_DB_PATH=/path/to/db`)
 
 **Global flag:** `--json` on any command outputs structured JSON.
 
@@ -28,52 +28,52 @@ Alias shorthand used below: `mm <command>` (substitute the full path above).
 ### Models (containers for graphs)
 
 ```bash
-mm create <name> [-t code|org|concept|infra] [-d "description"] [-r /repo/path]
-mm list
-mm delete <name>
-mm export <name> [-f jsonld|json|dot] [-o file]
-mm import <file>
+engram create <name> [-t code|org|concept|infra] [-d "description"] [-r /repo/path]
+engram list
+engram delete <name>
+engram export <name> [-f jsonld|json|dot] [-o file]
+engram import <file>
 ```
 
 ### Nodes
 
 ```bash
-mm add <model> <label> [--type <type>] [-m key=value ...]
-mm rm <model> <node>
-mm update <model> <node> [--label new] [--type new] [-m key=value ...]
-mm verify <model> <node>           # mark as recently verified
-mm nodes <model> [-t type]
+engram add <model> <label> [--type <type>] [-m key=value ...]
+engram rm <model> <node>
+engram update <model> <node> [--label new] [--type new] [-m key=value ...]
+engram verify <model> <node>           # mark as recently verified
+engram nodes <model> [-t type]
 ```
 
 ### Edges
 
 ```bash
-mm link <model> <source> <rel> <target> [-m key=value ...]
-mm unlink <model> <source> <rel> <target>
-mm edges <model> [--from node] [--to node] [--rel type]
+engram link <model> <source> <rel> <target> [-m key=value ...]
+engram unlink <model> <source> <rel> <target>
+engram edges <model> [--from node] [--to node] [--rel type]
 ```
 
 ### Queries
 
 ```bash
-mm q <model> <node>                # neighbors (depth 1)
-mm q <model> <node> --depth 3     # expand neighborhood
-mm q <model> --affects <node>     # what breaks if this changes? (reverse traversal)
-mm q <model> --depends-on <node>  # what does this need? (forward traversal)
-mm q <model> -t service           # all nodes of type (includes subtypes)
-mm q <model> --stale --days 14    # nodes not verified in 14+ days
-mm q <model> --orphans            # nodes with no edges
-mm path <model> <from> <to> [--max-depth N]  # all paths between two nodes
+engram q <model> <node>                # neighbors (depth 1)
+engram q <model> <node> --depth 3     # expand neighborhood
+engram q <model> --affects <node>     # what breaks if this changes? (reverse traversal)
+engram q <model> --depends-on <node>  # what does this need? (forward traversal)
+engram q <model> -t service           # all nodes of type (includes subtypes)
+engram q <model> --stale --days 14    # nodes not verified in 14+ days
+engram q <model> --orphans            # nodes with no edges
+engram path <model> <from> <to> [--max-depth N]  # all paths between two nodes
 ```
 
 ### Search (cross-model)
 
 ```bash
-mm search <query>                 # search ALL models (labels, types, metadata)
-mm search <query> --model myapp   # search within one model
-mm search <query> --limit 10      # max results (default 5)
-mm search <query> --exclude zink-family --exclude test  # skip models
-mm search <query> --json          # JSON output for recall/automation
+engram search <query>                 # search ALL models (labels, types, metadata)
+engram search <query> --model myapp   # search within one model
+engram search <query> --limit 10      # max results (default 5)
+engram search <query> --exclude zink-family --exclude test  # skip models
+engram search <query> --json          # JSON output for recall/automation
 ```
 
 Results show each matching node + its 1-hop edges, grouped by model.
@@ -81,36 +81,36 @@ Results show each matching node + its 1-hop edges, grouped by model.
 ### Types & Relationships
 
 ```bash
-mm type list                      # show type hierarchy tree
-mm type add <label> [--parent p] [--domain code|org|infra|concept]
-mm type rm <label>
-mm rel list                       # show all relationship types with inverses
-mm rel add <label> [--inverse inv]
-mm rel rm <label>
+engram type list                      # show type hierarchy tree
+engram type add <label> [--parent p] [--domain code|org|infra|concept]
+engram type rm <label>
+engram rel list                       # show all relationship types with inverses
+engram rel add <label> [--inverse inv]
+engram rel rm <label>
 ```
 
 ### Branches (code model overlays)
 
 ```bash
-mm branch <model> <branch-name>             # create overlay
-mm branch <model> --list                    # list overlays
-mm merge <model> <branch-name>              # fold into parent
-mm branch <model> <branch-name> --delete    # discard
+engram branch <model> <branch-name>             # create overlay
+engram branch <model> --list                    # list overlays
+engram merge <model> <branch-name>              # fold into parent
+engram branch <model> <branch-name> --delete    # discard
 ```
 
 ### Git Integration (code models only)
 
 ```bash
-mm check <model>       # compare anchor vs HEAD, show affected nodes
-mm refresh <model>     # update anchor to HEAD, mark all verified
-mm diff <model>        # detailed file-by-file diff with affected subgraph
-mm stale <model>       # show stale nodes and edges
+engram check <model>       # compare anchor vs HEAD, show affected nodes
+engram refresh <model>     # update anchor to HEAD, mark all verified
+engram diff <model>        # detailed file-by-file diff with affected subgraph
+engram stale <model>       # show stale nodes and edges
 ```
 
 ### Cross-Model
 
 ```bash
-mm xlink <model1> <node1> <rel> <model2> <node2>
+engram xlink <model1> <node1> <rel> <model2> <node2>
 ```
 
 ### Batch
@@ -118,7 +118,7 @@ mm xlink <model1> <node1> <rel> <model2> <node2>
 ```bash
 echo "add mymodel NodeA --type service
 add mymodel NodeB --type database
-link mymodel NodeA depends-on NodeB" | mm batch mymodel
+link mymodel NodeA depends-on NodeB" | engram batch mymodel
 ```
 
 ## Built-in Types (extensible)
@@ -132,7 +132,7 @@ thing
 └── concept: process, event, rule
 ```
 
-Type queries include subtypes: `mm q model -t service` finds services AND microservices.
+Type queries include subtypes: `engram q model -t service` finds services AND microservices.
 
 ## Built-in Relationships (extensible)
 
@@ -164,7 +164,7 @@ After testing both "review everything first, then batch" and "enter as you go", 
 
 2. **Batch the skeleton** — Create all major nodes and their primary relationships in one batch command. This captures the obvious architecture quickly.
    ```bash
-   mm batch myapp <<EOF
+   engram batch myapp <<EOF
    add Frontend --type component -m file=src/App.tsx
    add API --type service -m file=src/api/server.ts
    add DB --type database
@@ -175,8 +175,8 @@ After testing both "review everything first, then batch" and "enter as you go", 
 
 3. **Add discoveries incrementally** — During coding, when you discover non-obvious relationships (e.g., "this function silently depends on NODE_ENV being set"), add them immediately:
    ```bash
-   mm add myapp isPubSubDisabled --type function -m "note=returns false in production regardless of DISABLE_AUTH"
-   mm link myapp fleet-rest calls isPubSubDisabled
+   engram add myapp isPubSubDisabled --type function -m "note=returns false in production regardless of DISABLE_AUTH"
+   engram link myapp fleet-rest calls isPubSubDisabled
    ```
 
 4. **Review after sessions** — Quick pass: "Did I discover anything worth keeping?" Batch any accumulated additions.
@@ -206,16 +206,16 @@ The tool handles org charts well with `type: org` models and `type: person` node
 
 **Dual-reporting:** People often report to multiple managers. Use multiple `reports_to` links — the graph handles this naturally:
 ```bash
-mm link Ken reports_to Tom
-mm link Ken reports_to Deepak
+engram link Ken reports_to Tom
+engram link Ken reports_to Deepak
 ```
 
 **Part-time / contractor status:** Encode employment status in metadata, not separate node types:
 ```bash
-mm add Brandon --type person -m role="Hardware Manager (Part-Time)"
+engram add Brandon --type person -m role="Hardware Manager (Part-Time)"
 ```
 
-**Hierarchy queries work well:** `mm q org --affects CEO` shows everyone who reports up to that person (direct and transitive). `mm path org Engineer CEO` shows the reporting chain.
+**Hierarchy queries work well:** `engram q org --affects CEO` shows everyone who reports up to that person (direct and transitive). `engram path org Engineer CEO` shows the reporting chain.
 
 **Iterative correction is the norm.** Org charts are rarely right on the first pass — you'll get the public website version, then the human corrects you. Batch the skeleton from public info, then update incrementally as corrections come in. The `rm` and `unlink` commands make this cheap.
 
@@ -226,51 +226,51 @@ mm add Brandon --type person -m role="Hardware Manager (Part-Time)"
 ### Map a codebase architecture
 
 ```bash
-mm create myapp -t code -d "My application" -r /path/to/repo
-mm add myapp Frontend --type component -m file=src/App.tsx
-mm add myapp API --type service -m file=src/api/server.ts -m port=3000
-mm add myapp DB --type database -m engine=postgres
-mm link myapp Frontend calls API -m via="REST /api"
-mm link myapp API depends-on DB
-mm refresh myapp   # anchor to current git HEAD
+engram create myapp -t code -d "My application" -r /path/to/repo
+engram add myapp Frontend --type component -m file=src/App.tsx
+engram add myapp API --type service -m file=src/api/server.ts -m port=3000
+engram add myapp DB --type database -m engine=postgres
+engram link myapp Frontend calls API -m via="REST /api"
+engram link myapp API depends-on DB
+engram refresh myapp   # anchor to current git HEAD
 ```
 
 ### Check blast radius before a change
 
 ```bash
-mm q myapp --affects API       # everything upstream of API
-mm path myapp Frontend DB      # all paths from Frontend to DB
-mm check myapp                 # what git changes affect which nodes
+engram q myapp --affects API       # everything upstream of API
+engram path myapp Frontend DB      # all paths from Frontend to DB
+engram check myapp                 # what git changes affect which nodes
 ```
 
 ### Branch overlay for feature work
 
 ```bash
-mm branch myapp feature/new-cache
-mm add myapp Redis --type database
-mm link myapp API uses Redis
+engram branch myapp feature/new-cache
+engram add myapp Redis --type database
+engram link myapp API uses Redis
 # ... later ...
-mm merge myapp feature/new-cache   # fold changes into base model
+engram merge myapp feature/new-cache   # fold changes into base model
 ```
 
 ### Share models between agents (JSON-LD)
 
 ```bash
-mm export myapp -f jsonld -o myapp.jsonld    # export with semantic context
-mm import myapp.jsonld                        # another agent imports it
+engram export myapp -f jsonld -o myapp.jsonld    # export with semantic context
+engram import myapp.jsonld                        # another agent imports it
 ```
 
 ### Visualize with Graphviz
 
 ```bash
-mm export myapp -f dot | dot -Tpng -o graph.png   # requires graphviz installed
-mm export myapp -f dot -o myapp.dot                # save DOT file
+engram export myapp -f dot | dot -Tpng -o graph.png   # requires graphviz installed
+engram export myapp -f dot -o myapp.dot                # save DOT file
 ```
 
 ### Track freshness over time
 
 ```bash
-mm stale myapp --days 7        # what hasn't been verified this week?
-mm verify myapp API            # mark a node as freshly verified
-mm refresh myapp               # mark everything verified (after review)
+engram stale myapp --days 7        # what hasn't been verified this week?
+engram verify myapp API            # mark a node as freshly verified
+engram refresh myapp               # mark everything verified (after review)
 ```

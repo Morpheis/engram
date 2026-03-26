@@ -10,7 +10,7 @@ let dbPath: string;
 let repoDir: string;
 
 function mm(args: string): string {
-  const env = { ...process.env, MM_DB_PATH: dbPath };
+  const env = { ...process.env, ENGRAM_DB_PATH: dbPath };
   return execSync(`${CLI} ${args}`, {
     cwd: join(import.meta.dirname, '../..'),
     env,
