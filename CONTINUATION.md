@@ -24,12 +24,17 @@
 
 ### Current Test Count: 305 tests across 14 files
 
-## Active Models
-- `chitin` (code) — 19 nodes, 27 edges. Personality persistence layer.
-- `oathkeeper` (code) — 20 nodes, 22 edges. Accountability escrow smart contract + SDK.
-- `hashbranch` (org) — 4 people. Current org chart.
-- `hashbranch-e2e` (code) — E2E test debugging relationships.
-- `zink-family` (org) — Family relationships.
+## Active Models (10 models, 168 nodes, 211 edges)
+- `chitin` (code) — 19 nodes, 27 edges. Personality persistence layer internals.
+- `oathkeeper` (code) — 20 nodes, 22 edges. Smart contract + SDK architecture.
+- `hashbranch` (org) — 20 nodes, 38 edges. Org chart + all repos + service relationships.
+- `hashbranch-e2e` (code) — 20 nodes, 23 edges. E2E test debugging relationships.
+- `mental-model` (code) — 24 nodes, 39 edges. Engram's own architecture (self-referential).
+- `openclaw-recall` (code) — 13 nodes, 25 edges. Recall plugin architecture.
+- `personal-projects` (code) — 21 nodes, 10 edges. All personal repos catalogued.
+- `zink-family` (org) — 4 nodes, 4 edges. Family relationships.
+- `infrastructure` (infra) — 19 nodes, 15 edges. Local tools, services, credentials, connections.
+- `people` (org) — 8 nodes, 8 edges. Boss, coworkers, friends, trust levels.
 
 ## Saved Models
 
