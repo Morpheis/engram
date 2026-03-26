@@ -251,6 +251,20 @@ thing
 
 Extend with `engram type add <label> --parent <existing>`.
 
+## Agent Setup
+
+If you're an AI agent using Engram, add this to your workspace bootstrap file (e.g., `AGENTS.md`) so future sessions know the system exists:
+
+```markdown
+- **Engram:** `~/Personal/engram` — your persistent knowledge graph (relationships between
+  code, people, systems). If `## 🔗 Knowledge Graph` appears in recalled context, that's
+  engram. When you discover non-obvious relationships during work, add them:
+  `cd ~/Personal/engram && npx tsx src/index.ts add <model> <node> ...`
+  (read the skill for full usage).
+```
+
+This ensures new sessions know to both **use** and **maintain** the knowledge graph.
+
 ## Architecture
 
 See [DESIGN-v2.md](DESIGN-v2.md) for the full design specification including data model, ontology decisions, and implementation phases.

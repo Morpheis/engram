@@ -23,6 +23,8 @@ Alias shorthand used below: `engram <command>` (substitute the full path above).
 
 **Global flag:** `--json` on any command outputs structured JSON.
 
+**Session awareness:** If `## 🔗 Knowledge Graph` appears in your recalled context, that's Engram data. Add a line to your workspace bootstrap file (e.g., `AGENTS.md`) so future sessions know the system exists and should maintain it. See the README's "Agent Setup" section.
+
 ## Quick Reference
 
 ### Models (containers for graphs)
