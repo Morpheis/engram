@@ -17,23 +17,27 @@ Build, query, and maintain relationship graphs of codebases, organizations, infr
 - **Export formats** — JSON, JSON-LD (semantic), and DOT (Graphviz visualization)
 - **Batch operations** — Pipe commands via stdin for bulk model building
 
-## Quick Start
+## Install
 
 ```bash
-# Clone and install
-git clone git@github.com:Morpheis/engram.git
+# From npm (globally)
+npm install -g @clawdactual/engram
+
+# Then use directly
+engram create myapp --type code --description "My application"
+```
+
+### From source
+
+```bash
+git clone https://github.com/Morpheis/engram.git
 cd engram
 npm install
-
-# Run (not yet globally installed)
 npx tsx src/index.ts <command>
-
-# Or with alias
-alias engram='cd ~/Personal/engram && npx tsx src/index.ts'
 ```
 
 **Database location:** `~/.config/engram/models.db`  
-**Override:** `ENGRAM_DB_PATH=/custom/path.db npx tsx src/index.ts <command>`
+**Override:** `ENGRAM_DB_PATH=/custom/path.db engram <command>`
 
 ## Command Reference
 
@@ -256,10 +260,10 @@ Extend with `engram type add <label> --parent <existing>`.
 If you're an AI agent using Engram, add this to your workspace bootstrap file (e.g., `AGENTS.md`) so future sessions know the system exists:
 
 ```markdown
-- **Engram:** `~/Personal/engram` — your persistent knowledge graph (relationships between
+- **Engram:** `/path/to/engram` — your persistent knowledge graph (relationships between
   code, people, systems). If `## 🔗 Knowledge Graph` appears in recalled context, that's
   engram. When you discover non-obvious relationships during work, add them:
-  `cd ~/Personal/engram && npx tsx src/index.ts add <model> <node> ...`
+  `cd /path/to/engram && npx tsx src/index.ts add <model> <node> ...`
   (read the skill for full usage).
 ```
 

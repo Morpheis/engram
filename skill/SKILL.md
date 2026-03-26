@@ -14,6 +14,7 @@ A persistent knowledge graph for AI agents. Store nodes (components, services, p
 ## How to Run
 
 ```bash
+# Default install path (adjust to your clone location)
 cd ~/Personal/engram && npx tsx src/index.ts <command>
 ```
 

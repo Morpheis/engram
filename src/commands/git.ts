@@ -25,7 +25,7 @@ function validateCodeModel(storage: StorageInterface, modelName: string) {
   }
 
   if (!model.repoPath) {
-    throw new Error(`Model "${model.name}" has no repo_path configured. Use 'mm create <name> -t code -r /path/to/repo'.`);
+    throw new Error(`Model "${model.name}" has no repo_path configured. Use 'engram create <name> -t code -r /path/to/repo'.`);
   }
 
   return model;
@@ -49,7 +49,7 @@ function buildNodeMap(nodes: GraphNode[]): Map<string, GraphNode> {
 }
 
 export function registerGitCommands(program: Command, getStorage: () => StorageInterface): void {
-  // ── mm check <model> ────────────────────────────────
+  // ── engram check <model> ────────────────────────────
   program
     .command('check <model>')
     .description('Check model freshness against git HEAD')
@@ -151,14 +151,14 @@ export function registerGitCommands(program: Command, getStorage: () => StorageI
         }
 
         console.log('');
-        console.log(`Run '${chalk.cyan(`mm refresh ${model.name}`)}' to update anchor to current HEAD.`);
+        console.log(`Run '${chalk.cyan(`engram refresh ${model.name}`)}' to update anchor to current HEAD.`);
       } catch (e: unknown) {
         outputError((e as Error).message);
         process.exit(1);
       }
     });
 
-  // ── mm refresh <model> ──────────────────────────────
+  // ── engram refresh <model> ──────────────────────────
   program
     .command('refresh <model>')
     .description('Update model anchor to current HEAD and mark all nodes/edges as verified')
@@ -198,7 +198,7 @@ export function registerGitCommands(program: Command, getStorage: () => StorageI
       }
     });
 
-  // ── mm diff <model> ─────────────────────────────────
+  // ── engram diff <model> ─────────────────────────────
   program
     .command('diff <model>')
     .description('Detailed diff summary with affected subgraph')
@@ -349,7 +349,7 @@ export function registerGitCommands(program: Command, getStorage: () => StorageI
       }
     });
 
-  // ── mm stale <model> [--days N] ─────────────────────
+  // ── engram stale <model> [--days N] ─────────────────
   program
     .command('stale <model>')
     .description('Show stale nodes and edges in a model')
@@ -393,7 +393,7 @@ export function registerGitCommands(program: Command, getStorage: () => StorageI
           return;
         }
 
-        // Code model: show anchor info and suggest mm check
+        // Code model: show anchor info and suggest engram check
         if (model.type === 'code' && model.repoPath) {
           if (model.anchor) {
             const anchorAge = getCommitAge(model.repoPath, model.anchor);
@@ -401,7 +401,7 @@ export function registerGitCommands(program: Command, getStorage: () => StorageI
           } else {
             console.log(`Model "${chalk.bold(model.name)}" has no anchor set`);
           }
-          console.log(`  ${chalk.dim(`Run 'mm check ${model.name}' for git-aware freshness check`)}`);
+          console.log(`  ${chalk.dim(`Run 'engram check ${model.name}' for git-aware freshness check`)}`);
           console.log('');
         }
 

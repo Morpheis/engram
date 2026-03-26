@@ -189,27 +189,27 @@ function buildJsonLd(
 ): Record<string, unknown> {
   // Build @context from core properties + all relationship types in the model
   const context: Record<string, string> = {
-    mm: 'https://github.com/Morpheis/engram/schema#',
-    nodes: 'mm:nodes',
-    edges: 'mm:edges',
-    label: 'mm:label',
-    type: 'mm:type',
-    relationship: 'mm:relationship',
-    metadata: 'mm:metadata',
-    verified_at: 'mm:verified_at',
+    engram: 'https://github.com/Morpheis/engram/schema#',
+    nodes: 'engram:nodes',
+    edges: 'engram:edges',
+    label: 'engram:label',
+    type: 'engram:type',
+    relationship: 'engram:relationship',
+    metadata: 'engram:metadata',
+    verified_at: 'engram:verified_at',
   };
 
   // Add all relationship labels used in the model
   for (const rel of relationships) {
-    context[rel.label] = `mm:${rel.label}`;
+    context[rel.label] = `engram:${rel.label}`;
     if (rel.inverseLabel) {
-      context[rel.inverseLabel] = `mm:${rel.inverseLabel}`;
+      context[rel.inverseLabel] = `engram:${rel.inverseLabel}`;
     }
   }
 
   const result: Record<string, unknown> = {
     '@context': context,
-    '@type': 'mm:Model',
+    '@type': 'engram:Model',
     name: model.name,
     modelType: model.type,
   };

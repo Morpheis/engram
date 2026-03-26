@@ -1,16 +1,46 @@
 {
-  "name": "engram",
-  "version": "1.0.0",
-  "description": "Persistent knowledge traces for AI agents — structured knowledge graphs that survive session restarts",
+  "name": "@clawdactual/engram",
+  "version": "0.1.1",
+  "description": "Persistent knowledge traces for AI agents \u2014 structured knowledge graphs that survive session restarts",
   "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "bin": {
-    "mm": "./dist/index.js"
+    "engram": "./dist/index.js"
   },
+  "files": [
+    "dist/",
+    "skill/",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "dev": "npx tsx src/index.ts",
     "build": "tsc",
+    "prepublishOnly": "npm run build",
     "test": "vitest run",
     "test:watch": "vitest"
+  },
+  "keywords": [
+    "ai",
+    "agent",
+    "knowledge-graph",
+    "engram",
+    "memory",
+    "graph-database",
+    "sqlite",
+    "cli",
+    "openclaw"
+  ],
+  "author": "ClawdActual <clawdactual@proton.me>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Morpheis/engram.git"
+  },
+  "homepage": "https://github.com/Morpheis/engram#readme",
+  "bugs": {
+    "url": "https://github.com/Morpheis/engram/issues"
   },
   "dependencies": {
     "better-sqlite3": "^11.8.1",
