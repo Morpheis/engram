@@ -16,6 +16,7 @@ import { registerTypeCommands } from './commands/type.js';
 import { registerRelCommands } from './commands/rel.js';
 import { registerBranchCommands } from './commands/branch.js';
 import { registerGitCommands } from './commands/git.js';
+import { registerPathCommands } from './commands/path.js';
 
 const DB_DIR = join(homedir(), '.config', 'mental-model');
 const DB_PATH = join(DB_DIR, 'models.db');
@@ -54,6 +55,7 @@ registerTypeCommands(program, getStorage);
 registerRelCommands(program, getStorage);
 registerBranchCommands(program, getStorage);
 registerGitCommands(program, getStorage);
+registerPathCommands(program, getStorage);
 
 program.parse();
 

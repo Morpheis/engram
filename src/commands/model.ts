@@ -59,12 +59,23 @@ export function registerModelCommands(program: Command, getStorage: () => Storag
     .command('export <name>')
     .description('Export a model to JSON or JSON-LD')
     .option('-o, --output <file>', 'Output file (default: stdout)')
-    .option('-f, --format <format>', 'Export format (jsonld|json)', 'jsonld')
+    .option('-f, --format <format>', 'Export format (jsonld|json|dot)', 'jsonld')
     .action((name: string, opts: { output?: string; format?: string }) => {
       try {
         const storage = getStorage();
         const data = storage.exportModel(name);
         const format = opts.format ?? 'jsonld';
+
+        if (format === 'dot') {
+          const dot = buildDot(data.model, data.nodes, data.edges);
+          if (opts.output) {
+            writeFileSync(opts.output, dot);
+            outputSuccess(`Exported to ${opts.output}`);
+          } else {
+            console.log(dot);
+          }
+          return;
+        }
 
         let output: Record<string, unknown>;
 
@@ -267,4 +278,128 @@ function buildJsonLd(
   });
 
   return result;
+}
+
+// ── DOT (Graphviz) Builder ───────────────────────────
+
+/** Map node type labels to Graphviz shapes */
+function dotShape(typeLabel: string | null): string {
+  if (!typeLabel) return 'ellipse';
+  const t = typeLabel.toLowerCase();
+  // Services / infrastructure
+  if (t === 'service' || t === 'microservice') return 'box';
+  if (t === 'database') return 'cylinder';
+  if (t === 'server' || t === 'container') return 'box3d';
+  if (t === 'network' || t === 'endpoint') return 'diamond';
+  // People / org
+  if (t === 'person') return 'house';
+  if (t === 'team' || t === 'company') return 'tab';
+  if (t === 'role') return 'invhouse';
+  // Concepts
+  if (t === 'process') return 'hexagon';
+  if (t === 'event') return 'parallelogram';
+  if (t === 'rule') return 'octagon';
+  // Code artifacts
+  if (t === 'config' || t === 'script') return 'note';
+  if (t === 'test-runner') return 'cds';
+  if (t === 'middleware') return 'trapezium';
+  if (t === 'library' || t === 'module') return 'component';
+  // Default for component, hook, function, page, widget, etc.
+  return 'ellipse';
+}
+
+/** Map node type to a fill color based on domain category */
+function dotColor(typeLabel: string | null): string {
+  if (!typeLabel) return '#e5e7eb'; // gray for untyped
+
+  const t = typeLabel.toLowerCase();
+
+  // Code domain (blue palette)
+  const codeTypes = [
+    'component', 'page', 'widget', 'hook', 'function', 'service',
+    'microservice', 'middleware', 'library', 'config', 'script',
+    'test-runner', 'module',
+  ];
+  if (codeTypes.includes(t)) return '#dbeafe';
+
+  // Org domain (green palette)
+  const orgTypes = ['person', 'team', 'role', 'company'];
+  if (orgTypes.includes(t)) return '#dcfce7';
+
+  // Infra domain (orange palette)
+  const infraTypes = ['server', 'container', 'network', 'endpoint', 'database'];
+  if (infraTypes.includes(t)) return '#fed7aa';
+
+  // Concept domain (purple palette)
+  const conceptTypes = ['process', 'event', 'rule'];
+  if (conceptTypes.includes(t)) return '#e9d5ff';
+
+  return '#e5e7eb'; // fallback gray
+}
+
+/** Escape a string for use inside DOT quoted attribute values */
+function dotEscape(s: string): string {
+  return s.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+}
+
+function buildDot(
+  model: Model,
+  nodes: GraphNode[],
+  edges: Edge[],
+): string {
+  const lines: string[] = [];
+  const modelName = dotEscape(model.name);
+  lines.push(`digraph "${modelName}" {`);
+  lines.push('  rankdir=LR;');
+  lines.push('  node [fontname="monospace", fontsize=10];');
+  lines.push('');
+
+  // Build node ID → label map
+  const nodeMap = new Map(nodes.map(n => [n.id, n]));
+
+  // Nodes
+  if (nodes.length > 0) {
+    lines.push('  // Nodes');
+    for (const n of nodes) {
+      const shape = dotShape(n.type);
+      const color = dotColor(n.type);
+      const label = dotEscape(n.label);
+
+      // Build tooltip from type + metadata
+      const tooltipParts: string[] = [];
+      if (n.type) tooltipParts.push(n.type);
+      for (const [k, v] of Object.entries(n.metadata)) {
+        tooltipParts.push(`${k}: ${v}`);
+      }
+      const tooltip = dotEscape(tooltipParts.join('\\n'));
+
+      lines.push(`  "${label}" [shape=${shape}, style=filled, fillcolor="${color}"${tooltip ? `, tooltip="${tooltip}"` : ''}];`);
+    }
+    lines.push('');
+  }
+
+  // Edges
+  if (edges.length > 0) {
+    lines.push('  // Edges');
+    for (const e of edges) {
+      const srcNode = nodeMap.get(e.sourceId);
+      const tgtNode = nodeMap.get(e.targetId);
+      if (!srcNode || !tgtNode) continue;
+      const src = dotEscape(srcNode.label);
+      const tgt = dotEscape(tgtNode.label);
+      const rel = dotEscape(e.relationship);
+
+      // Edge metadata as tooltip
+      const metaEntries = Object.entries(e.metadata);
+      const edgeTooltip = metaEntries.length > 0
+        ? `, tooltip="${dotEscape(metaEntries.map(([k, v]) => `${k}: ${v}`).join('\\n'))}"`
+        : '';
+
+      lines.push(`  "${src}" -> "${tgt}" [label="${rel}"${edgeTooltip}];`);
+    }
+    lines.push('');
+  }
+
+  lines.push('}');
+  return lines.join('\n');
 }
