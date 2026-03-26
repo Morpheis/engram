@@ -106,7 +106,7 @@ describe('CLI Integration', () => {
     mm('link exportable NodeA calls NodeB');
 
     const exportFile = join(tmpdir(), `mm-export-${Date.now()}.json`);
-    mm(`export exportable --output ${exportFile}`);
+    mm(`export exportable --format json --output ${exportFile}`);
     expect(existsSync(exportFile)).toBe(true);
 
     const raw = readFileSync(exportFile, 'utf-8');

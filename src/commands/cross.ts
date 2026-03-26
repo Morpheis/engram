@@ -1,7 +1,8 @@
 import { Command } from 'commander';
-import type { StorageInterface } from '../storage/interface.js';
+import chalk from 'chalk';
+import type { StorageInterface, GraphNode } from '../storage/interface.js';
 import { resolveNode, parseMeta } from './node.js';
-import { outputJson, outputNodes, outputSuccess, outputError, isJsonMode } from '../utils/output.js';
+import { outputJson, outputSuccess, outputError, isJsonMode } from '../utils/output.js';
 
 export function registerCrossCommands(program: Command, getStorage: () => StorageInterface): void {
   program
@@ -13,6 +14,8 @@ export function registerCrossCommands(program: Command, getStorage: () => Storag
         const storage = getStorage();
         const node1 = resolveNode(storage, m1, n1Ref);
         const node2 = resolveNode(storage, m2, n2Ref);
+        const model1 = storage.getModel(m1);
+        const model2 = storage.getModel(m2);
         const edge = storage.addCrossEdge(
           node1.id,
           rel,
@@ -22,7 +25,9 @@ export function registerCrossCommands(program: Command, getStorage: () => Storag
         if (isJsonMode()) {
           outputJson(edge);
         } else {
-          outputSuccess(`Cross-linked ${node1.label} —[${rel}]→ ${node2.label}`);
+          const srcRef = `${model1!.name}:${node1.label}`;
+          const tgtRef = `${model2!.name}:${node2.label}`;
+          outputSuccess(`Cross-linked ${srcRef} —[${rel}]→ ${tgtRef}`);
         }
       } catch (e: unknown) {
         outputError((e as Error).message);
@@ -44,7 +49,7 @@ export function registerCrossCommands(program: Command, getStorage: () => Storag
             console.log(`No nodes matching "${query}"`);
           } else {
             console.log(`Found ${results.length} node(s) matching "${query}":`);
-            outputNodes(results);
+            outputNodesNamespaced(storage, results);
           }
         }
       } catch (e: unknown) {
@@ -52,4 +57,24 @@ export function registerCrossCommands(program: Command, getStorage: () => Storag
         process.exit(1);
       }
     });
+}
+
+/**
+ * Display nodes with model namespace prefix.
+ */
+function outputNodesNamespaced(storage: StorageInterface, nodes: GraphNode[]): void {
+  // Build model ID → name map
+  const modelNameMap = new Map<string, string>();
+  for (const n of nodes) {
+    if (!modelNameMap.has(n.modelId)) {
+      const model = storage.getModel(n.modelId);
+      modelNameMap.set(n.modelId, model?.name ?? n.modelId);
+    }
+  }
+
+  for (const n of nodes) {
+    const modelName = modelNameMap.get(n.modelId) ?? n.modelId;
+    const meta = Object.keys(n.metadata).length > 0 ? ` ${chalk.dim(JSON.stringify(n.metadata))}` : '';
+    console.log(`  ${chalk.bold(n.label)}${n.type ? ` ${chalk.dim(`(${n.type})`)}` : ''} ${chalk.cyan(`[${modelName}]`)}${meta}  ${chalk.dim(n.id)}`);
+  }
 }

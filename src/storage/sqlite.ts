@@ -213,19 +213,68 @@ export class SqliteStorage implements StorageInterface {
     this.db.prepare('DELETE FROM models WHERE id = ?').run(model.id);
   }
 
-  exportModel(nameOrId: string): { model: Model; nodes: GraphNode[]; edges: Edge[] } {
+  exportModel(nameOrId: string): {
+    model: Model;
+    nodes: GraphNode[];
+    edges: Edge[];
+    types: TypeDef[];
+    relationships: RelDef[];
+  } {
     const model = this.getModel(nameOrId);
     if (!model) throw new Error(`Model not found: ${nameOrId}`);
+
+    // Use overlay-aware resolution (listNodes/listEdges handle overlays)
     const nodes = this.listNodes(model.id);
     const nodeIds = new Set(nodes.map(n => n.id));
-    const allEdges = this.db.prepare(
-      'SELECT * FROM edges WHERE source_id IN (SELECT id FROM nodes WHERE model_id = ?)'
-    ).all(model.id) as EdgeRow[];
-    const edges = allEdges.filter(e => nodeIds.has(e.source_id) && nodeIds.has(e.target_id)).map(toEdge);
-    return { model, nodes, edges };
+    const allEdges = this.listEdges(model.id);
+    const edges = allEdges.filter(e => nodeIds.has(e.sourceId) && nodeIds.has(e.targetId));
+
+    // Collect types used in this model's nodes
+    const usedTypeLabels = new Set(nodes.map(n => n.type).filter(Boolean) as string[]);
+    const types = this.listTypes().filter(t => usedTypeLabels.has(t.label));
+
+    // Collect relationships used in this model's edges
+    const usedRelLabels = new Set(edges.map(e => e.relationship));
+    const relationships = this.listRelDefs().filter(r => usedRelLabels.has(r.label));
+
+    return { model, nodes, edges, types, relationships };
   }
 
-  importModel(data: { model: ModelInput; nodes: NodeInput[]; edges: EdgeInput[] }): Model {
+  importModel(data: {
+    model: ModelInput;
+    nodes: NodeInput[];
+    edges: EdgeInput[];
+    types?: TypeInput[];
+    relationships?: RelDefInput[];
+  }): Model {
+    // Import custom types (skip existing / built-in)
+    if (data.types) {
+      for (const typeInput of data.types) {
+        const existing = this.getType(typeInput.label);
+        if (!existing) {
+          try {
+            this.addType(typeInput);
+          } catch {
+            // Ignore duplicates
+          }
+        }
+      }
+    }
+
+    // Import custom relationships (skip existing / built-in)
+    if (data.relationships) {
+      for (const relInput of data.relationships) {
+        const existing = this.getRelDef(relInput.label);
+        if (!existing) {
+          try {
+            this.addRelDef(relInput);
+          } catch {
+            // Ignore duplicates
+          }
+        }
+      }
+    }
+
     const model = this.createModel(data.model);
     const idMap = new Map<string, string>();
 

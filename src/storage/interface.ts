@@ -140,8 +140,20 @@ export interface StorageInterface {
   getModel(nameOrId: string): Model | null;
   listModels(): Model[];
   deleteModel(nameOrId: string): void;
-  exportModel(nameOrId: string): { model: Model; nodes: GraphNode[]; edges: Edge[] };
-  importModel(data: { model: ModelInput; nodes: NodeInput[]; edges: EdgeInput[] }): Model;
+  exportModel(nameOrId: string): {
+    model: Model;
+    nodes: GraphNode[];
+    edges: Edge[];
+    types: TypeDef[];
+    relationships: RelDef[];
+  };
+  importModel(data: {
+    model: ModelInput;
+    nodes: NodeInput[];
+    edges: EdgeInput[];
+    types?: TypeInput[];
+    relationships?: RelDefInput[];
+  }): Model;
 
   // Nodes
   addNode(modelId: string, node: NodeInput): GraphNode;
