@@ -61,6 +61,8 @@ export interface Model {
   sourceType: 'git' | 'manual';
   anchor: string | null;
   repoPath: string | null;
+  parentModelId: string | null;
+  branch: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -122,6 +124,16 @@ export interface Path {
   edges: Edge[];
 }
 
+export interface OverlayChange {
+  id: string;
+  modelId: string;
+  changeType: 'add_node' | 'remove_node' | 'modify_node' | 'add_edge' | 'remove_edge' | 'modify_edge';
+  targetId: string;
+  oldData: Record<string, unknown> | null;
+  newData: Record<string, unknown> | null;
+  createdAt: string;
+}
+
 export interface StorageInterface {
   // Models
   createModel(model: ModelInput): Model;
@@ -136,14 +148,14 @@ export interface StorageInterface {
   getNode(nodeId: string): GraphNode | null;
   findNode(modelId: string, label: string): GraphNode | null;
   updateNode(nodeId: string, updates: Partial<NodeInput>): GraphNode;
-  deleteNode(nodeId: string): void;
+  deleteNode(nodeId: string, contextModelId?: string): void;
   listNodes(modelId: string, filter?: { type?: string }): GraphNode[];
   verifyNode(nodeId: string): void;
 
   // Edges
   addEdge(edge: EdgeInput): Edge;
   getEdge(sourceId: string, targetId: string, relationship: string): Edge | null;
-  deleteEdge(sourceId: string, targetId: string, relationship: string): void;
+  deleteEdge(sourceId: string, targetId: string, relationship: string, contextModelId?: string): void;
   listEdges(modelId: string, filter?: { from?: string; to?: string; rel?: string }): Edge[];
 
   // Traversals
@@ -172,6 +184,12 @@ export interface StorageInterface {
   getRelDef(labelOrId: string): RelDef | null;
   addRelDef(input: RelDefInput): RelDef;
   deleteRelDef(labelOrId: string): void;
+
+  // Branch Overlays
+  createBranch(modelId: string, branchName: string): Model;
+  listBranches(modelId: string): Model[];
+  mergeBranch(modelId: string, branchName: string): void;
+  deleteBranch(modelId: string, branchName: string): void;
 
   // Lifecycle
   close(): void;

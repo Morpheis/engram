@@ -1,7 +1,7 @@
 import Database from 'better-sqlite3';
 import { generateId } from '../utils/ids.js';
 
-export const SCHEMA_VERSION = 2;
+export const SCHEMA_VERSION = 3;
 
 const DDL_V1 = `
 CREATE TABLE IF NOT EXISTS schema_version (
@@ -238,7 +238,39 @@ function migrateV1toV2(db: Database.Database): void {
   `);
 
   // Update schema version
-  db.prepare('UPDATE schema_version SET version = ?').run(SCHEMA_VERSION);
+  db.prepare('UPDATE schema_version SET version = ?').run(2);
+}
+
+const DDL_V3 = `
+CREATE TABLE IF NOT EXISTS overlay_changes (
+  id TEXT PRIMARY KEY,
+  model_id TEXT NOT NULL REFERENCES models(id) ON DELETE CASCADE,
+  change_type TEXT CHECK(change_type IN ('add_node', 'remove_node', 'modify_node', 'add_edge', 'remove_edge', 'modify_edge')),
+  target_id TEXT NOT NULL,
+  old_data TEXT,
+  new_data TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_overlay_changes_model ON overlay_changes(model_id);
+CREATE INDEX IF NOT EXISTS idx_overlay_changes_target ON overlay_changes(target_id);
+`;
+
+function migrateV2toV3(db: Database.Database): void {
+  // Add parent_model_id and branch columns to models table
+  const modelColumns = db.pragma('table_info(models)') as Array<{ name: string }>;
+  if (!modelColumns.some(c => c.name === 'parent_model_id')) {
+    db.exec('ALTER TABLE models ADD COLUMN parent_model_id TEXT REFERENCES models(id)');
+  }
+  if (!modelColumns.some(c => c.name === 'branch')) {
+    db.exec('ALTER TABLE models ADD COLUMN branch TEXT');
+  }
+
+  // Create overlay_changes table
+  db.exec(DDL_V3);
+
+  // Update schema version
+  db.prepare('UPDATE schema_version SET version = ?').run(3);
 }
 
 export function initSchema(db: Database.Database): void {
@@ -254,6 +286,7 @@ export function initSchema(db: Database.Database): void {
     // Fresh database — create everything
     db.exec(DDL_V1);
     db.exec(DDL_V2);
+    db.exec(DDL_V3);
 
     // Add type_id to nodes and rel_id to edges
     const nodeColumns = db.pragma('table_info(nodes)') as Array<{ name: string }>;
@@ -263,6 +296,15 @@ export function initSchema(db: Database.Database): void {
     const edgeColumns = db.pragma('table_info(edges)') as Array<{ name: string }>;
     if (!edgeColumns.some(c => c.name === 'rel_id')) {
       db.exec('ALTER TABLE edges ADD COLUMN rel_id TEXT REFERENCES rel_defs(id)');
+    }
+
+    // Add branch overlay columns to models
+    const modelColumns = db.pragma('table_info(models)') as Array<{ name: string }>;
+    if (!modelColumns.some(c => c.name === 'parent_model_id')) {
+      db.exec('ALTER TABLE models ADD COLUMN parent_model_id TEXT REFERENCES models(id)');
+    }
+    if (!modelColumns.some(c => c.name === 'branch')) {
+      db.exec('ALTER TABLE models ADD COLUMN branch TEXT');
     }
 
     db.prepare('INSERT INTO schema_version (version) VALUES (?)').run(SCHEMA_VERSION);
@@ -286,6 +328,10 @@ export function initSchema(db: Database.Database): void {
 
   if (currentVersion < 2) {
     migrateV1toV2(db);
+  }
+
+  if (currentVersion < 3) {
+    migrateV2toV3(db);
   }
 
   // Always re-seed built-ins (idempotent via INSERT OR IGNORE)

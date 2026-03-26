@@ -71,8 +71,10 @@ export function registerNodeCommands(program: Command, getStorage: () => Storage
     .action((modelName: string, nodeRef: string) => {
       try {
         const storage = getStorage();
+        const model = storage.getModel(modelName);
+        if (!model) throw new Error(`Model not found: ${modelName}`);
         const node = resolveNode(storage, modelName, nodeRef);
-        storage.deleteNode(node.id);
+        storage.deleteNode(node.id, model.id);
         outputSuccess(`Removed node ${node.label}`);
       } catch (e: unknown) {
         outputError((e as Error).message);

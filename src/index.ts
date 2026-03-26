@@ -14,6 +14,7 @@ import { registerBatchCommand } from './commands/batch.js';
 import { registerCrossCommands } from './commands/cross.js';
 import { registerTypeCommands } from './commands/type.js';
 import { registerRelCommands } from './commands/rel.js';
+import { registerBranchCommands } from './commands/branch.js';
 
 const DB_DIR = join(homedir(), '.config', 'mental-model');
 const DB_PATH = join(DB_DIR, 'models.db');
@@ -50,6 +51,7 @@ registerBatchCommand(program, getStorage);
 registerCrossCommands(program, getStorage);
 registerTypeCommands(program, getStorage);
 registerRelCommands(program, getStorage);
+registerBranchCommands(program, getStorage);
 
 program.parse();
 

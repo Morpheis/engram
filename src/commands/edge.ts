@@ -44,9 +44,11 @@ export function registerEdgeCommands(program: Command, getStorage: () => Storage
     .action((modelName: string, sourceRef: string, rel: string, targetRef: string) => {
       try {
         const storage = getStorage();
+        const model = storage.getModel(modelName);
+        if (!model) throw new Error(`Model not found: ${modelName}`);
         const source = resolveNode(storage, modelName, sourceRef);
         const target = resolveNode(storage, modelName, targetRef);
-        storage.deleteEdge(source.id, target.id, rel);
+        storage.deleteEdge(source.id, target.id, rel, model.id);
         outputSuccess(`Unlinked ${source.label} —[${rel}]→ ${target.label}`);
       } catch (e: unknown) {
         outputError((e as Error).message);
