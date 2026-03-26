@@ -21,6 +21,8 @@ export function outputModel(model: Model): void {
   if (model.description) console.log(`  ${model.description}`);
   console.log(`  ${chalk.dim('id:')} ${model.id}`);
   if (model.repoPath) console.log(`  ${chalk.dim('repo:')} ${model.repoPath}`);
+  if (model.branch) console.log(`  ${chalk.dim('branch:')} ${model.branch}`);
+  if (model.parentModelId) console.log(`  ${chalk.dim('parent:')} ${model.parentModelId}`);
   console.log(`  ${chalk.dim('created:')} ${model.createdAt}`);
 }
 
@@ -31,7 +33,8 @@ export function outputModels(models: Model[]): void {
     return;
   }
   for (const m of models) {
-    console.log(`  ${chalk.bold(m.name)} ${chalk.dim(`(${m.type})`)}${m.description ? ` — ${m.description}` : ''}`);
+    const branchTag = m.branch ? ` ${chalk.cyan(`[branch: ${m.branch}]`)}` : '';
+    console.log(`  ${chalk.bold(m.name)} ${chalk.dim(`(${m.type})`)}${branchTag}${m.description ? ` — ${m.description}` : ''}`);
   }
 }
 
