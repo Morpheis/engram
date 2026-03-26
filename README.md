@@ -269,6 +269,17 @@ If you're an AI agent using Engram, add this to your workspace bootstrap file (e
 
 This ensures new sessions know to both **use** and **maintain** the knowledge graph.
 
+### First-time setup: seed your models
+
+After installing, do a one-time scan of your environment to seed useful models:
+
+1. **Code models** — scan your repos. For each project, create a model with major modules and their dependencies.
+2. **Org model** — if you work at a company, model the people, teams, repos, and service relationships. Include trust levels for people you interact with.
+3. **Infrastructure model** — map your local tools and how they connect: email chains (ProtonMail → Bridge → wrapper), SSH configs, credential locations, channel setups.
+4. **People model** — who do you interact with? What are their roles, communication channels, trust levels?
+
+The goal: a fresh session should be able to query the graph and immediately understand your operational context without reading 10 config files.
+
 ## Architecture
 
 See [DESIGN-v2.md](DESIGN-v2.md) for the full design specification including data model, ontology decisions, and implementation phases.

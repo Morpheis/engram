@@ -159,6 +159,16 @@ Type queries include subtypes: `engram q model -t service` finds services AND mi
 
 ## Best Practices for Building Models
 
+### First Install: Seed Your Environment
+
+On first use, scan your workspace and create models for:
+- **Code** — repos you work on. Modules, services, dependencies.
+- **Org** — company structure. People, teams, repos, service relationships, trust levels.
+- **Infrastructure** — local tools. Email chains, SSH configs, credential paths, channel setups.
+- **People** — who you interact with. Roles, channels, trust levels (owner/boss/coworker/friend).
+
+A fresh session should be able to query the graph and understand your operational context immediately. This is a one-time investment that compounds every session.
+
 ### The Hybrid Approach (Recommended)
 
 After testing both "review everything first, then batch" and "enter as you go", the optimal workflow is:
