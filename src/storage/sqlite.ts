@@ -1467,7 +1467,13 @@ export class SqliteStorage implements StorageInterface {
   }): Array<{ model: Model; node: GraphNode; edges: Edge[] }> {
     const limit = options?.limit ?? 5;
     const excludeModels = options?.excludeModels ?? [];
-    const pattern = `%${query}%`;
+
+    // Split query into individual terms for OR-based matching.
+    // "Tom Merkle" → ["%Tom%", "%Merkle%"] so we match "Tom-Merkle", metadata containing "Tom", etc.
+    const terms = query.split(/\s+/).filter(t => t.length > 0);
+    const patterns = terms.map(t => `%${t}%`);
+    // Also keep the full query as a pattern for exact multi-word matches
+    const fullPattern = `%${query}%`;
 
     // Determine which models to search
     let models: Model[];
@@ -1490,11 +1496,17 @@ export class SqliteStorage implements StorageInterface {
       if (results.length >= limit) break;
 
       // 1. Search nodes by label, type, or metadata
+      // Build dynamic OR clauses for each term
+      const termClauses = patterns.map(() =>
+        '(label LIKE ? OR type LIKE ? OR metadata LIKE ?)'
+      ).join(' OR ');
+      const termParams = patterns.flatMap(p => [p, p, p]);
+
       const matchingNodes = this.db.prepare(`
         SELECT * FROM nodes WHERE model_id = ?
-          AND (label LIKE ? OR type LIKE ? OR metadata LIKE ?)
+          AND (${termClauses})
         ORDER BY label
-      `).all(model.id, pattern, pattern, pattern) as NodeRow[];
+      `).all(model.id, ...termParams) as NodeRow[];
 
       for (const row of matchingNodes) {
         if (results.length >= limit) break;
@@ -1508,8 +1520,9 @@ export class SqliteStorage implements StorageInterface {
 
       // 2. Check if model name/description matches — return top nodes from that model
       if (results.length < limit) {
-        const modelNameMatch = model.name.toLowerCase().includes(query.toLowerCase()) ||
-          (model.description?.toLowerCase().includes(query.toLowerCase()) ?? false);
+        const lowerTerms = terms.map(t => t.toLowerCase());
+        const modelNameMatch = lowerTerms.some(t => model.name.toLowerCase().includes(t)) ||
+          lowerTerms.some(t => model.description?.toLowerCase().includes(t) ?? false);
 
         if (modelNameMatch) {
           const modelNodes = this.db.prepare(
@@ -1530,12 +1543,13 @@ export class SqliteStorage implements StorageInterface {
 
       // 3. Search edges by relationship label — return connected nodes
       if (results.length < limit) {
+        const edgeTermClauses = patterns.map(() => 'e.relationship LIKE ?').join(' OR ');
         const matchingEdges = this.db.prepare(`
           SELECT e.* FROM edges e
           JOIN nodes n ON e.source_id = n.id
-          WHERE n.model_id = ? AND e.relationship LIKE ?
+          WHERE n.model_id = ? AND (${edgeTermClauses})
           ORDER BY e.relationship
-        `).all(model.id, pattern) as EdgeRow[];
+        `).all(model.id, ...patterns) as EdgeRow[];
 
         for (const edgeRow of matchingEdges) {
           if (results.length >= limit) break;
