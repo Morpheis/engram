@@ -1,7 +1,7 @@
 {
-  "name": "mental-model",
-  "version": "0.1.0",
-  "description": "A structured knowledge graph tool for AI agents",
+  "name": "engram",
+  "version": "1.0.0",
+  "description": "Persistent knowledge traces for AI agents — structured knowledge graphs that survive session restarts",
   "type": "module",
   "bin": {
     "mm": "./dist/index.js"

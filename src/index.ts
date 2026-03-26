@@ -20,7 +20,7 @@ import { registerGitCommands } from './commands/git.js';
 import { registerPathCommands } from './commands/path.js';
 import { registerSearchCommand } from './commands/search.js';
 
-const DB_DIR = join(homedir(), '.config', 'mental-model');
+const DB_DIR = join(homedir(), '.config', 'engram');
 const DB_PATH = join(DB_DIR, 'models.db');
 
 let storage: SqliteStorage | null = null;
@@ -38,7 +38,7 @@ const program = new Command();
 
 program
   .name('mm')
-  .description('Mental Model — a structured knowledge graph for AI agents')
+  .description('Engram — a structured knowledge graph for AI agents')
   .version('0.1.0')
   .option('--json', 'Output in JSON format')
   .hook('preAction', (thisCommand) => {

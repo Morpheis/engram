@@ -189,7 +189,7 @@ function buildJsonLd(
 ): Record<string, unknown> {
   // Build @context from core properties + all relationship types in the model
   const context: Record<string, string> = {
-    mm: 'https://github.com/Morpheis/mental-model/schema#',
+    mm: 'https://github.com/Morpheis/engram/schema#',
     nodes: 'mm:nodes',
     edges: 'mm:edges',
     label: 'mm:label',

@@ -40,7 +40,7 @@ describe('JSON-LD Export', () => {
 
     // Must have @context
     expect(data['@context']).toBeDefined();
-    expect(data['@context'].mm).toBe('https://github.com/Morpheis/mental-model/schema#');
+    expect(data['@context'].mm).toBe('https://github.com/Morpheis/engram/schema#');
 
     // Must have @type
     expect(data['@type']).toBe('mm:Model');
@@ -211,7 +211,7 @@ describe('JSON-LD Import', () => {
 
   it('strips @context and @type during import', () => {
     const jsonld = {
-      '@context': { mm: 'https://github.com/Morpheis/mental-model/schema#' },
+      '@context': { mm: 'https://github.com/Morpheis/engram/schema#' },
       '@type': 'mm:Model',
       name: 'context-test',
       modelType: 'concept',

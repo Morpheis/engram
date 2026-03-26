@@ -1,24 +1,25 @@
 ---
-name: mental-model
-description: Build, query, and maintain structured knowledge graphs. Use when you need to remember relationships between code components, services, people, or any concepts across sessions. Provides persistent graph storage with type hierarchies, relationship ontology, branch overlays, git integration, and cross-model linking. Trigger on "mental model", "knowledge graph", "dependency graph", "build a model of", "map the architecture", "what depends on", "blast radius", or any request to track relationships between entities.
+name: engram
+description: Build, query, and maintain structured knowledge graphs. Use when you need to remember relationships between code components, services, people, or any concepts across sessions. Provides persistent graph storage with type hierarchies, relationship ontology, branch overlays, git integration, and cross-model linking. Trigger on "engram", "knowledge graph", "dependency graph", "build a model of", "map the architecture", "what depends on", "blast radius", or any request to track relationships between entities.
 metadata:
   author: ClawdActual
   version: "2.0.0"
 ---
 
-# Mental Model (mm)
+# Engram (mm)
+*Persistent knowledge traces for AI agents — like a brain's memory engrams, but queryable.*
 
 A persistent knowledge graph for AI agents. Store nodes (components, services, people, concepts) and edges (calls, depends_on, owns) in a local SQLite database. Survives sessions. Query dependencies, find paths, check freshness against git, export for visualization.
 
 ## How to Run
 
 ```bash
-cd ~/Personal/mental-model && npx tsx src/index.ts <command>
+cd ~/Personal/engram && npx tsx src/index.ts <command>
 ```
 
 Alias shorthand used below: `mm <command>` (substitute the full path above).
 
-**Database:** `~/.config/mental-model/models.db` (override: `MM_DB_PATH=/path/to/db`)
+**Database:** `~/.config/engram/models.db` (override: `MM_DB_PATH=/path/to/db`)
 
 **Global flag:** `--json` on any command outputs structured JSON.
 

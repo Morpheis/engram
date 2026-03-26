@@ -1,6 +1,9 @@
-# Mental Model (`mm`)
+# Engram (`mm`)
+### Persistent knowledge traces for AI agents
 
-A structured knowledge graph tool for AI agents. Build, query, and maintain persistent relationship graphs of codebases, organizations, infrastructure, and concepts.
+*An [engram](https://en.wikipedia.org/wiki/Engram_(neuropsychology)) is the physical trace a memory leaves in the brain. This tool gives AI agents the same thing — persistent, structured, queryable knowledge that survives session restarts.*
+
+Build, query, and maintain relationship graphs of codebases, organizations, infrastructure, and concepts.
 
 ## Features
 
@@ -18,18 +21,18 @@ A structured knowledge graph tool for AI agents. Build, query, and maintain pers
 
 ```bash
 # Clone and install
-git clone git@github.com:Morpheis/mental-model.git
-cd mental-model
+git clone git@github.com:Morpheis/engram.git
+cd engram
 npm install
 
 # Run (not yet globally installed)
 npx tsx src/index.ts <command>
 
 # Or with alias
-alias mm='cd ~/Personal/mental-model && npx tsx src/index.ts'
+alias mm='cd ~/Personal/engram && npx tsx src/index.ts'
 ```
 
-**Database location:** `~/.config/mental-model/models.db`  
+**Database location:** `~/.config/engram/models.db`  
 **Override:** `MM_DB_PATH=/custom/path.db npx tsx src/index.ts <command>`
 
 ## Command Reference

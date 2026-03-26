@@ -1,11 +1,11 @@
-# Mental Model — Continuation Notes
+# Engram — Continuation Notes
 
 ## Status (2026-03-25)
 
 ### Phase 1: COMPLETE ✅
 - 58 tests passing, all commands working
 - CLI: `npx tsx src/index.ts <command>` (or `mm` when globally linked)
-- DB: `~/.config/mental-model/models.db` (override with `MM_DB_PATH`)
+- DB: `~/.config/engram/models.db` (override with `MM_DB_PATH`)
 
 ### Phase 2: COMPLETE ✅
 - Batch command, verify, check, cross-model links, JSON-LD export
@@ -51,5 +51,5 @@ To import: `mm import hashbranch-e2e-model.json`
 ## Next Steps
 1. Start building models for other repos as I work on them
 2. Consider renaming from `mm` to something more distinctive
-3. Enable mental-model source in Boss's openclaw-recall config
+3. Enable engram source in Boss's openclaw-recall config
 4. Explore FTS5 if LIKE-based search becomes a bottleneck
