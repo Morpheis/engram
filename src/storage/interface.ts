@@ -2,6 +2,48 @@
 // All database operations go through this interface.
 // Swap SQLite for Neo4j/etc later without touching anything above.
 
+// ── Type Definitions ─────────────────────────────────
+
+export interface TypeDef {
+  id: string;
+  label: string;
+  parentId: string | null;
+  description: string | null;
+  domain: string | null;  // code, org, infra, concept, or null (universal)
+  builtIn: boolean;
+  createdAt: string;
+}
+
+export interface TypeInput {
+  label: string;
+  parentId?: string;
+  description?: string;
+  domain?: string;
+}
+
+// ── Relationship Definitions ─────────────────────────
+
+export interface RelDef {
+  id: string;
+  label: string;
+  inverseLabel: string | null;
+  description: string | null;
+  sourceTypeConstraint: string | null;
+  targetTypeConstraint: string | null;
+  builtIn: boolean;
+  createdAt: string;
+}
+
+export interface RelDefInput {
+  label: string;
+  inverseLabel?: string;
+  description?: string;
+  sourceTypeConstraint?: string;
+  targetTypeConstraint?: string;
+}
+
+// ── Models ───────────────────────────────────────────
+
 export interface ModelInput {
   name: string;
   description?: string;
@@ -35,6 +77,7 @@ export interface GraphNode {
   modelId: string;
   label: string;
   type: string | null;
+  typeId: string | null;
   metadata: Record<string, unknown>;
   verifiedAt: string;
   createdAt: string;
@@ -54,6 +97,7 @@ export interface Edge {
   sourceId: string;
   targetId: string;
   relationship: string;
+  relId: string | null;
   metadata: Record<string, unknown>;
   weight: number | null;
   verifiedAt: string;
@@ -115,6 +159,19 @@ export interface StorageInterface {
 
   // Cross-model edges
   addCrossEdge(sourceNodeId: string, relationship: string, targetNodeId: string, metadata?: Record<string, unknown>): Edge;
+
+  // Type Definitions
+  listTypes(): TypeDef[];
+  getType(labelOrId: string): TypeDef | null;
+  addType(input: TypeInput): TypeDef;
+  deleteType(labelOrId: string): void;
+  getTypeWithSubtypes(labelOrId: string): string[];  // returns all type IDs including subtypes
+
+  // Relationship Definitions
+  listRelDefs(): RelDef[];
+  getRelDef(labelOrId: string): RelDef | null;
+  addRelDef(input: RelDefInput): RelDef;
+  deleteRelDef(labelOrId: string): void;
 
   // Lifecycle
   close(): void;

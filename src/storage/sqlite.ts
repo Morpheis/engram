@@ -8,6 +8,8 @@ import type {
   EdgeInput, Edge,
   TraversalResult, TraversalNode,
   Path,
+  TypeDef, TypeInput,
+  RelDef, RelDefInput,
 } from './interface.js';
 
 // Row types matching SQLite columns
@@ -28,6 +30,7 @@ interface NodeRow {
   model_id: string;
   label: string;
   type: string | null;
+  type_id: string | null;
   metadata: string;
   verified_at: string;
   created_at: string;
@@ -39,11 +42,33 @@ interface EdgeRow {
   source_id: string;
   target_id: string;
   relationship: string;
+  rel_id: string | null;
   metadata: string;
   weight: number | null;
   verified_at: string;
   created_at: string;
   updated_at: string;
+}
+
+interface TypeDefRow {
+  id: string;
+  label: string;
+  parent_id: string | null;
+  description: string | null;
+  domain: string | null;
+  built_in: number;
+  created_at: string;
+}
+
+interface RelDefRow {
+  id: string;
+  label: string;
+  inverse_label: string | null;
+  description: string | null;
+  source_type_constraint: string | null;
+  target_type_constraint: string | null;
+  built_in: number;
+  created_at: string;
 }
 
 function toModel(row: ModelRow): Model {
@@ -66,6 +91,7 @@ function toNode(row: NodeRow): GraphNode {
     modelId: row.model_id,
     label: row.label,
     type: row.type,
+    typeId: row.type_id ?? null,
     metadata: JSON.parse(row.metadata || '{}'),
     verifiedAt: row.verified_at,
     createdAt: row.created_at,
@@ -79,11 +105,37 @@ function toEdge(row: EdgeRow): Edge {
     sourceId: row.source_id,
     targetId: row.target_id,
     relationship: row.relationship,
+    relId: row.rel_id ?? null,
     metadata: JSON.parse(row.metadata || '{}'),
     weight: row.weight,
     verifiedAt: row.verified_at,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+  };
+}
+
+function toTypeDef(row: TypeDefRow): TypeDef {
+  return {
+    id: row.id,
+    label: row.label,
+    parentId: row.parent_id,
+    description: row.description,
+    domain: row.domain,
+    builtIn: row.built_in === 1,
+    createdAt: row.created_at,
+  };
+}
+
+function toRelDef(row: RelDefRow): RelDef {
+  return {
+    id: row.id,
+    label: row.label,
+    inverseLabel: row.inverse_label,
+    description: row.description,
+    sourceTypeConstraint: row.source_type_constraint,
+    targetTypeConstraint: row.target_type_constraint,
+    builtIn: row.built_in === 1,
+    createdAt: row.created_at,
   };
 }
 
@@ -131,7 +183,6 @@ export class SqliteStorage implements StorageInterface {
   deleteModel(nameOrId: string): void {
     const model = this.getModel(nameOrId);
     if (!model) throw new Error(`Model not found: ${nameOrId}`);
-    // CASCADE will handle nodes and edges
     this.db.prepare('DELETE FROM models WHERE id = ?').run(model.id);
   }
 
@@ -143,7 +194,6 @@ export class SqliteStorage implements StorageInterface {
     const allEdges = this.db.prepare(
       'SELECT * FROM edges WHERE source_id IN (SELECT id FROM nodes WHERE model_id = ?)'
     ).all(model.id) as EdgeRow[];
-    // Only include edges where both endpoints are in this model
     const edges = allEdges.filter(e => nodeIds.has(e.source_id) && nodeIds.has(e.target_id)).map(toEdge);
     return { model, nodes, edges };
   }
@@ -154,18 +204,15 @@ export class SqliteStorage implements StorageInterface {
 
     const insertNode = this.db.transaction(() => {
       for (const nodeInput of data.nodes) {
-        // Always generate new IDs on import — old IDs may conflict
         const oldId = nodeInput.id;
         const node = this.addNode(model.id, {
           label: nodeInput.label,
           type: nodeInput.type,
           metadata: nodeInput.metadata,
-          // Don't pass id — let it auto-generate
         });
         if (oldId) {
           idMap.set(oldId, node.id);
         }
-        // Also map by label for edge resolution
         idMap.set(nodeInput.label, node.id);
       }
     });
@@ -195,14 +242,25 @@ export class SqliteStorage implements StorageInterface {
 
     const id = input.id ?? generateId('nd');
     const now = new Date().toISOString();
+
+    // Resolve type against type_defs if provided
+    let typeId: string | null = null;
+    if (input.type) {
+      const typeDef = this.getType(input.type);
+      if (typeDef) {
+        typeId = typeDef.id;
+      }
+    }
+
     this.db.prepare(`
-      INSERT INTO nodes (id, model_id, label, type, metadata, verified_at, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO nodes (id, model_id, label, type, type_id, metadata, verified_at, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       id,
       model.id,
       input.label,
       input.type ?? null,
+      typeId,
       JSON.stringify(input.metadata ?? {}),
       now, now, now
     );
@@ -234,9 +292,20 @@ export class SqliteStorage implements StorageInterface {
       ? JSON.stringify({ ...node.metadata, ...updates.metadata })
       : JSON.stringify(node.metadata);
 
+    // Resolve type_id if type changed
+    let typeId = node.typeId;
+    if (updates.type !== undefined) {
+      if (updates.type) {
+        const typeDef = this.getType(updates.type);
+        typeId = typeDef?.id ?? null;
+      } else {
+        typeId = null;
+      }
+    }
+
     this.db.prepare(`
-      UPDATE nodes SET label = ?, type = ?, metadata = ?, updated_at = ? WHERE id = ?
-    `).run(newLabel, newType ?? null, newMeta, now, nodeId);
+      UPDATE nodes SET label = ?, type = ?, type_id = ?, metadata = ?, updated_at = ? WHERE id = ?
+    `).run(newLabel, newType ?? null, typeId, newMeta, now, nodeId);
 
     return this.getNode(nodeId)!;
   }
@@ -244,7 +313,6 @@ export class SqliteStorage implements StorageInterface {
   deleteNode(nodeId: string): void {
     const node = this.getNode(nodeId);
     if (!node) throw new Error(`Node not found: ${nodeId}`);
-    // CASCADE handles edges
     this.db.prepare('DELETE FROM nodes WHERE id = ?').run(nodeId);
   }
 
@@ -252,16 +320,30 @@ export class SqliteStorage implements StorageInterface {
     const model = this.getModel(modelId);
     if (!model) throw new Error(`Model not found: ${modelId}`);
 
-    let sql = 'SELECT * FROM nodes WHERE model_id = ?';
-    const params: unknown[] = [model.id];
-
     if (filter?.type) {
-      sql += ' AND type = ?';
-      params.push(filter.type);
+      // Resolve type through hierarchy — include subtypes
+      const subtypeIds = this.getTypeWithSubtypes(filter.type);
+      if (subtypeIds.length > 0) {
+        // Get all labels for these type IDs
+        const placeholders = subtypeIds.map(() => '?').join(',');
+        const typeLabels = (this.db.prepare(
+          `SELECT label FROM type_defs WHERE id IN (${placeholders})`
+        ).all(...subtypeIds) as Array<{ label: string }>).map(r => r.label);
+
+        // Query nodes matching any of these type labels (or the original if no type_def match)
+        const allLabels = [...new Set([filter.type, ...typeLabels])];
+        const labelPlaceholders = allLabels.map(() => '?').join(',');
+        const sql = `SELECT * FROM nodes WHERE model_id = ? AND type IN (${labelPlaceholders}) ORDER BY label`;
+        return (this.db.prepare(sql).all(model.id, ...allLabels) as NodeRow[]).map(toNode);
+      } else {
+        // No type_def match — exact match only (ad-hoc types)
+        const sql = 'SELECT * FROM nodes WHERE model_id = ? AND type = ? ORDER BY label';
+        return (this.db.prepare(sql).all(model.id, filter.type) as NodeRow[]).map(toNode);
+      }
     }
 
-    sql += ' ORDER BY label';
-    return (this.db.prepare(sql).all(...params) as NodeRow[]).map(toNode);
+    const sql = 'SELECT * FROM nodes WHERE model_id = ? ORDER BY label';
+    return (this.db.prepare(sql).all(model.id) as NodeRow[]).map(toNode);
   }
 
   verifyNode(nodeId: string): void {
@@ -279,16 +361,24 @@ export class SqliteStorage implements StorageInterface {
     const target = this.getNode(input.targetId);
     if (!target) throw new Error(`Target node not found: ${input.targetId}`);
 
+    // Resolve relationship against rel_defs
+    let relId: string | null = null;
+    const relDef = this.getRelDef(input.relationship);
+    if (relDef) {
+      relId = relDef.id;
+    }
+
     const id = generateId('eg');
     const now = new Date().toISOString();
     this.db.prepare(`
-      INSERT INTO edges (id, source_id, target_id, relationship, metadata, weight, verified_at, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO edges (id, source_id, target_id, relationship, rel_id, metadata, weight, verified_at, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       id,
       input.sourceId,
       input.targetId,
       input.relationship,
+      relId,
       JSON.stringify(input.metadata ?? {}),
       input.weight ?? null,
       now, now, now
@@ -356,7 +446,6 @@ export class SqliteStorage implements StorageInterface {
       const nextFrontier: string[] = [];
 
       for (const nid of frontier) {
-        // Outgoing edges
         const outgoing = this.db.prepare(
           'SELECT * FROM edges WHERE source_id = ?'
         ).all(nid) as EdgeRow[];
@@ -374,7 +463,6 @@ export class SqliteStorage implements StorageInterface {
           }
         }
 
-        // Incoming edges
         const incoming = this.db.prepare(
           'SELECT * FROM edges WHERE target_id = ?'
         ).all(nid) as EdgeRow[];
@@ -401,12 +489,10 @@ export class SqliteStorage implements StorageInterface {
   }
 
   getAffects(nodeId: string, depth: number = 10): TraversalResult {
-    // Reverse traversal: who depends on me? (follow incoming edges)
     return this.traverse(nodeId, 'incoming', depth);
   }
 
   getDependsOn(nodeId: string, depth: number = 10): TraversalResult {
-    // Forward traversal: what do I depend on? (follow outgoing edges)
     return this.traverse(nodeId, 'outgoing', depth);
   }
 
@@ -535,10 +621,126 @@ export class SqliteStorage implements StorageInterface {
     });
   }
 
+  // --- Type Definitions ---
+
+  listTypes(): TypeDef[] {
+    const rows = this.db.prepare('SELECT * FROM type_defs ORDER BY label').all() as TypeDefRow[];
+    return rows.map(toTypeDef);
+  }
+
+  getType(labelOrId: string): TypeDef | null {
+    const row = this.db.prepare(
+      'SELECT * FROM type_defs WHERE id = ? OR label = ?'
+    ).get(labelOrId, labelOrId) as TypeDefRow | undefined;
+    return row ? toTypeDef(row) : null;
+  }
+
+  addType(input: TypeInput): TypeDef {
+    // Resolve parent
+    let parentId: string | null = null;
+    if (input.parentId) {
+      const parent = this.getType(input.parentId);
+      if (!parent) throw new Error(`Parent type not found: ${input.parentId}`);
+      parentId = parent.id;
+    }
+
+    // Check for duplicate label
+    const existing = this.getType(input.label);
+    if (existing) throw new Error(`Type already exists: ${input.label}`);
+
+    const id = generateId('type');
+    const now = new Date().toISOString();
+    this.db.prepare(`
+      INSERT INTO type_defs (id, label, parent_id, description, domain, built_in, created_at)
+      VALUES (?, ?, ?, ?, ?, 0, ?)
+    `).run(id, input.label, parentId, input.description ?? null, input.domain ?? null, now);
+
+    return this.getType(id)!;
+  }
+
+  deleteType(labelOrId: string): void {
+    const typeDef = this.getType(labelOrId);
+    if (!typeDef) throw new Error(`Type not found: ${labelOrId}`);
+    if (typeDef.builtIn) throw new Error(`Cannot delete built-in type: ${typeDef.label}`);
+
+    // Check for children
+    const children = this.db.prepare(
+      'SELECT id FROM type_defs WHERE parent_id = ?'
+    ).all(typeDef.id) as Array<{ id: string }>;
+    if (children.length > 0) {
+      throw new Error(`Cannot delete type with children: ${typeDef.label}`);
+    }
+
+    this.db.prepare('DELETE FROM type_defs WHERE id = ?').run(typeDef.id);
+  }
+
+  getTypeWithSubtypes(labelOrId: string): string[] {
+    const typeDef = this.getType(labelOrId);
+    if (!typeDef) return [];
+
+    // Recursive CTE to get all subtypes
+    const rows = this.db.prepare(`
+      WITH RECURSIVE subtypes AS (
+        SELECT id FROM type_defs WHERE id = ?
+        UNION ALL
+        SELECT td.id FROM type_defs td
+        JOIN subtypes s ON td.parent_id = s.id
+      )
+      SELECT id FROM subtypes
+    `).all(typeDef.id) as Array<{ id: string }>;
+
+    return rows.map(r => r.id);
+  }
+
+  // --- Relationship Definitions ---
+
+  listRelDefs(): RelDef[] {
+    const rows = this.db.prepare('SELECT * FROM rel_defs ORDER BY label').all() as RelDefRow[];
+    return rows.map(toRelDef);
+  }
+
+  getRelDef(labelOrId: string): RelDef | null {
+    // Also check inverse labels for reverse lookups
+    const row = this.db.prepare(
+      'SELECT * FROM rel_defs WHERE id = ? OR label = ? OR inverse_label = ?'
+    ).get(labelOrId, labelOrId, labelOrId) as RelDefRow | undefined;
+    return row ? toRelDef(row) : null;
+  }
+
+  addRelDef(input: RelDefInput): RelDef {
+    const existing = this.db.prepare(
+      'SELECT * FROM rel_defs WHERE label = ?'
+    ).get(input.label) as RelDefRow | undefined;
+    if (existing) throw new Error(`Relationship type already exists: ${input.label}`);
+
+    const id = generateId('rel');
+    const now = new Date().toISOString();
+    this.db.prepare(`
+      INSERT INTO rel_defs (id, label, inverse_label, description, source_type_constraint, target_type_constraint, built_in, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, 0, ?)
+    `).run(
+      id,
+      input.label,
+      input.inverseLabel ?? null,
+      input.description ?? null,
+      input.sourceTypeConstraint ?? null,
+      input.targetTypeConstraint ?? null,
+      now
+    );
+
+    return this.getRelDef(id)!;
+  }
+
+  deleteRelDef(labelOrId: string): void {
+    const relDef = this.getRelDef(labelOrId);
+    if (!relDef) throw new Error(`Relationship type not found: ${labelOrId}`);
+    if (relDef.builtIn) throw new Error(`Cannot delete built-in relationship type: ${relDef.label}`);
+    this.db.prepare('DELETE FROM rel_defs WHERE id = ?').run(relDef.id);
+  }
+
   // --- Helpers ---
 
   private buildPath(_rootId: string, _targetId: string, _visited: Set<string>): string[] {
-    // Simple path — just return root for now (full path tracking in traversals)
     return [_rootId];
   }
 

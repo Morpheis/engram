@@ -1,7 +1,7 @@
 import { Command } from 'commander';
 import type { StorageInterface } from '../storage/interface.js';
 import { resolveNode } from './node.js';
-import { outputTraversal, outputNodes, outputJson, outputError, isJsonMode } from '../utils/output.js';
+import { outputTraversal, outputNodes, outputJson, outputError, isJsonMode, setRelDefMap } from '../utils/output.js';
 
 export function registerQueryCommands(program: Command, getStorage: () => StorageInterface): void {
   const q = program
@@ -28,6 +28,11 @@ export function registerQueryCommands(program: Command, getStorage: () => Storag
         const model = storage.getModel(modelName);
         if (!model) throw new Error(`Model not found: ${modelName}`);
 
+        // Populate relDefMap for inverse label display
+        const relDefs = storage.listRelDefs();
+        const rdMap = new Map(relDefs.map(r => [r.label, r]));
+        setRelDefMap(rdMap);
+
         // --affects
         if (opts.affects) {
           const node = resolveNode(storage, modelName, opts.affects);
@@ -44,7 +49,7 @@ export function registerQueryCommands(program: Command, getStorage: () => Storag
           return;
         }
 
-        // --type
+        // --type filter now resolves through type hierarchy
         if (opts.type) {
           const nodes = storage.listNodes(model.id, { type: opts.type });
           outputNodes(nodes);

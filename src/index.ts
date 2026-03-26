@@ -12,6 +12,8 @@ import { registerEdgeCommands } from './commands/edge.js';
 import { registerQueryCommands } from './commands/query.js';
 import { registerBatchCommand } from './commands/batch.js';
 import { registerCrossCommands } from './commands/cross.js';
+import { registerTypeCommands } from './commands/type.js';
+import { registerRelCommands } from './commands/rel.js';
 
 const DB_DIR = join(homedir(), '.config', 'mental-model');
 const DB_PATH = join(DB_DIR, 'models.db');
@@ -46,6 +48,8 @@ registerEdgeCommands(program, getStorage);
 registerQueryCommands(program, getStorage);
 registerBatchCommand(program, getStorage);
 registerCrossCommands(program, getStorage);
+registerTypeCommands(program, getStorage);
+registerRelCommands(program, getStorage);
 
 program.parse();
 

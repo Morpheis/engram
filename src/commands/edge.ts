@@ -24,7 +24,13 @@ export function registerEdgeCommands(program: Command, getStorage: () => Storage
         if (isJsonMode()) {
           outputJson(edge);
         } else {
-          outputSuccess(`Linked ${source.label} —[${rel}]→ ${target.label}`);
+          let msg = `Linked ${source.label} —[${rel}]→ ${target.label}`;
+          // Show inverse if available
+          const relDef = storage.getRelDef(rel);
+          if (relDef?.inverseLabel) {
+            msg += ` (inverse: ${target.label} —[${relDef.inverseLabel}]→ ${source.label})`;
+          }
+          outputSuccess(msg);
         }
       } catch (e: unknown) {
         outputError((e as Error).message);

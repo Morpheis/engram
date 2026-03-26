@@ -1,5 +1,5 @@
 import chalk from 'chalk';
-import type { Model, GraphNode, Edge, TraversalResult, TraversalNode } from '../storage/interface.js';
+import type { Model, GraphNode, Edge, TraversalResult, TraversalNode, RelDef } from '../storage/interface.js';
 
 let jsonMode = false;
 
@@ -76,6 +76,13 @@ export function outputEdges(edges: Edge[], nodeMap?: Map<string, GraphNode>): vo
   }
 }
 
+// Optional relDef map for showing inverse labels in traversal output
+let relDefMap: Map<string, RelDef> | null = null;
+
+export function setRelDefMap(map: Map<string, RelDef>): void {
+  relDefMap = map;
+}
+
 export function outputTraversal(result: TraversalResult): void {
   if (jsonMode) return outputJson(result);
   const { root, nodes } = result;
@@ -99,7 +106,11 @@ export function outputTraversal(result: TraversalResult): void {
     const metaStr = tn.edge && Object.keys(tn.edge.metadata).length > 0
       ? ` ${chalk.dim(`(${formatEdgeMeta(tn.edge.metadata)})`)}`
       : '';
-    console.log(`${indent}${chalk.yellow('←')} ${tn.edge!.relationship}: ${chalk.bold(tn.node.label)}${metaStr}`);
+    // Use inverse label if available
+    const rel = tn.edge!.relationship;
+    const relDef = relDefMap?.get(rel);
+    const displayRel = relDef?.inverseLabel ?? rel;
+    console.log(`${indent}${chalk.yellow('←')} ${displayRel}: ${chalk.bold(tn.node.label)}${metaStr}`);
   }
 
   for (const tn of outgoing) {
