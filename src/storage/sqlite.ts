@@ -1458,6 +1458,135 @@ export class SqliteStorage implements StorageInterface {
     return (this.db.prepare(sql).all(...params) as EdgeRow[]).map(toEdge);
   }
 
+  // --- Search ---
+
+  searchAllModels(query: string, options?: {
+    modelId?: string;
+    limit?: number;
+    excludeModels?: string[];
+  }): Array<{ model: Model; node: GraphNode; edges: Edge[] }> {
+    const limit = options?.limit ?? 5;
+    const excludeModels = options?.excludeModels ?? [];
+    const pattern = `%${query}%`;
+
+    // Determine which models to search
+    let models: Model[];
+    if (options?.modelId) {
+      const model = this.getModel(options.modelId);
+      if (!model) throw new Error(`Model not found: ${options.modelId}`);
+      models = [model];
+    } else {
+      models = this.listModels();
+    }
+
+    // Filter out excluded models (by name, case-insensitive)
+    const excludeSet = new Set(excludeModels.map(n => n.toLowerCase()));
+    models = models.filter(m => !excludeSet.has(m.name.toLowerCase()));
+
+    const results: Array<{ model: Model; node: GraphNode; edges: Edge[] }> = [];
+    const seenNodeIds = new Set<string>();
+
+    for (const model of models) {
+      if (results.length >= limit) break;
+
+      // 1. Search nodes by label, type, or metadata
+      const matchingNodes = this.db.prepare(`
+        SELECT * FROM nodes WHERE model_id = ?
+          AND (label LIKE ? OR type LIKE ? OR metadata LIKE ?)
+        ORDER BY label
+      `).all(model.id, pattern, pattern, pattern) as NodeRow[];
+
+      for (const row of matchingNodes) {
+        if (results.length >= limit) break;
+        const node = toNode(row);
+        if (seenNodeIds.has(node.id)) continue;
+        seenNodeIds.add(node.id);
+
+        const edges = this.getNodeEdges(node.id);
+        results.push({ model, node, edges });
+      }
+
+      // 2. Check if model name/description matches — return top nodes from that model
+      if (results.length < limit) {
+        const modelNameMatch = model.name.toLowerCase().includes(query.toLowerCase()) ||
+          (model.description?.toLowerCase().includes(query.toLowerCase()) ?? false);
+
+        if (modelNameMatch) {
+          const modelNodes = this.db.prepare(
+            'SELECT * FROM nodes WHERE model_id = ? ORDER BY label LIMIT ?'
+          ).all(model.id, Math.min(3, limit - results.length)) as NodeRow[];
+
+          for (const row of modelNodes) {
+            if (results.length >= limit) break;
+            const node = toNode(row);
+            if (seenNodeIds.has(node.id)) continue;
+            seenNodeIds.add(node.id);
+
+            const edges = this.getNodeEdges(node.id);
+            results.push({ model, node, edges });
+          }
+        }
+      }
+
+      // 3. Search edges by relationship label — return connected nodes
+      if (results.length < limit) {
+        const matchingEdges = this.db.prepare(`
+          SELECT e.* FROM edges e
+          JOIN nodes n ON e.source_id = n.id
+          WHERE n.model_id = ? AND e.relationship LIKE ?
+          ORDER BY e.relationship
+        `).all(model.id, pattern) as EdgeRow[];
+
+        for (const edgeRow of matchingEdges) {
+          if (results.length >= limit) break;
+          const edge = toEdge(edgeRow);
+
+          // Add source node if not already seen
+          if (!seenNodeIds.has(edge.sourceId)) {
+            const sourceNode = this.getNode(edge.sourceId);
+            if (sourceNode) {
+              seenNodeIds.add(sourceNode.id);
+              const edges = this.getNodeEdges(sourceNode.id);
+              results.push({ model, node: sourceNode, edges });
+            }
+          }
+
+          // Add target node if not already seen
+          if (results.length < limit && !seenNodeIds.has(edge.targetId)) {
+            const targetNode = this.getNode(edge.targetId);
+            if (targetNode) {
+              seenNodeIds.add(targetNode.id);
+              const edges = this.getNodeEdges(targetNode.id);
+              results.push({ model, node: targetNode, edges });
+            }
+          }
+        }
+      }
+    }
+
+    return results.slice(0, limit);
+  }
+
+  /** Get all edges (incoming and outgoing) for a node */
+  private getNodeEdges(nodeId: string): Edge[] {
+    const outgoing = this.db.prepare(
+      'SELECT * FROM edges WHERE source_id = ?'
+    ).all(nodeId) as EdgeRow[];
+    const incoming = this.db.prepare(
+      'SELECT * FROM edges WHERE target_id = ?'
+    ).all(nodeId) as EdgeRow[];
+
+    const seen = new Set<string>();
+    const edges: Edge[] = [];
+    for (const row of [...outgoing, ...incoming]) {
+      if (!seen.has(row.id)) {
+        seen.add(row.id);
+        edges.push(toEdge(row));
+      }
+    }
+    return edges;
+  }
+
   // --- Helpers ---
 
   private buildPath(_rootId: string, _targetId: string, _visited: Set<string>): string[] {

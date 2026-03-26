@@ -18,6 +18,7 @@ import { registerRelCommands } from './commands/rel.js';
 import { registerBranchCommands } from './commands/branch.js';
 import { registerGitCommands } from './commands/git.js';
 import { registerPathCommands } from './commands/path.js';
+import { registerSearchCommand } from './commands/search.js';
 
 const DB_DIR = join(homedir(), '.config', 'mental-model');
 const DB_PATH = join(DB_DIR, 'models.db');
@@ -57,6 +58,7 @@ registerRelCommands(program, getStorage);
 registerBranchCommands(program, getStorage);
 registerGitCommands(program, getStorage);
 registerPathCommands(program, getStorage);
+registerSearchCommand(program, getStorage);
 
 // === skill command (no storage needed) ===
 program

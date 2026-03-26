@@ -210,6 +210,13 @@ export interface StorageInterface {
   findNodesByFile(modelId: string, filePaths: string[]): Map<string, GraphNode[]>;  // file path → matching nodes
   findStaleEdges(modelId: string, olderThanDays: number): Edge[];
 
+  // Search
+  searchAllModels(query: string, options?: {
+    modelId?: string;
+    limit?: number;
+    excludeModels?: string[];
+  }): Array<{ model: Model; node: GraphNode; edges: Edge[] }>;
+
   // Lifecycle
   close(): void;
 }
