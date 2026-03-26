@@ -1,0 +1,538 @@
+{
+  "model": {
+    "id": "mdl_04Y319l08JH2",
+    "name": "hashbranch-e2e",
+    "description": "Hashbranch medusa e2e test architecture — relationships discovered during March 25 debugging session",
+    "type": "code",
+    "sourceType": "git",
+    "anchor": null,
+    "repoPath": "/Users/kzink/Hashbranch/hashbranch-medusa-2",
+    "createdAt": "2026-03-26T00:28:26.635Z",
+    "updatedAt": "2026-03-26T00:28:26.635Z"
+  },
+  "nodes": [
+    {
+      "id": "nd_-VEkTzvh6MWw",
+      "modelId": "mdl_04Y319l08JH2",
+      "label": "AG-Grid",
+      "type": "library",
+      "metadata": {
+        "note": "rowData=null shows loading state forever. rowData=[] shows no-rows overlay. This distinction matters for waitForGridLoad."
+      },
+      "verifiedAt": "2026-03-26T00:28:56.276Z",
+      "createdAt": "2026-03-26T00:28:56.276Z",
+      "updatedAt": "2026-03-26T00:28:56.276Z"
+    },
+    {
+      "id": "nd_Z0VUdhC1otqA",
+      "modelId": "mdl_04Y319l08JH2",
+      "label": "FleetHardwarePage",
+      "type": "page",
+      "metadata": {
+        "file": "src/admin/routes/fleets/hardware/page.tsx",
+        "note": "Server-side AG Grid. Column headers need exact text match to avoid Name/Customer/Facility collisions."
+      },
+      "verifiedAt": "2026-03-26T00:28:56.277Z",
+      "createdAt": "2026-03-26T00:28:56.277Z",
+      "updatedAt": "2026-03-26T00:28:56.277Z"
+    },
+    {
+      "id": "nd_ql3X8Y-Xqspr",
+      "modelId": "mdl_04Y319l08JH2",
+      "label": "FleetView",
+      "type": "component",
+      "metadata": {
+        "file": "src/admin/routes/fleets/[id]/components/FleetView.tsx"
+      },
+      "verifiedAt": "2026-03-26T00:28:56.271Z",
+      "createdAt": "2026-03-26T00:28:56.271Z",
+      "updatedAt": "2026-03-26T00:28:56.271Z"
+    },
+    {
+      "id": "nd_WClee5Nh1hJb",
+      "modelId": "mdl_04Y319l08JH2",
+      "label": "FleetsListPage",
+      "type": "page",
+      "metadata": {
+        "file": "src/admin/routes/fleets/page.tsx",
+        "note": "AG Grid with client-side data from useFleetSearch. No fleet data in e2e seed."
+      },
+      "verifiedAt": "2026-03-26T00:28:56.277Z",
+      "createdAt": "2026-03-26T00:28:56.277Z",
+      "updatedAt": "2026-03-26T00:28:56.277Z"
+    },
+    {
+      "id": "nd_8RGtr-AMiLgX",
+      "modelId": "mdl_04Y319l08JH2",
+      "label": "OrderQuote",
+      "type": "component",
+      "metadata": {
+        "file": "src/admin/routes/hb-orders/[id]/page.tsx",
+        "note": "Renders unconditionally for ALL order types and statuses. Not gated on sales type or finalization."
+      },
+      "verifiedAt": "2026-03-26T00:28:56.277Z",
+      "createdAt": "2026-03-26T00:28:56.277Z",
+      "updatedAt": "2026-03-26T00:28:56.277Z"
+    },
+    {
+      "id": "nd_8HuNAGy_ox41",
+      "modelId": "mdl_04Y319l08JH2",
+      "label": "Playwright-e2e",
+      "type": "test-runner",
+      "metadata": {
+        "file": "e2e/docker/docker-compose.e2e.yml"
+      },
+      "verifiedAt": "2026-03-26T00:28:56.276Z",
+      "createdAt": "2026-03-26T00:28:56.276Z",
+      "updatedAt": "2026-03-26T00:28:56.276Z"
+    },
+    {
+      "id": "nd_Ffz1aYJbV7eM",
+      "modelId": "mdl_04Y319l08JH2",
+      "label": "PurchaseOrdersList",
+      "type": "component",
+      "metadata": {
+        "file": "src/admin/routes/hb-orders/[id]/components/po/POListView.tsx",
+        "note": "Also renders unconditionally."
+      },
+      "verifiedAt": "2026-03-26T00:28:56.277Z",
+      "createdAt": "2026-03-26T00:28:56.277Z",
+      "updatedAt": "2026-03-26T00:28:56.277Z"
+    },
+    {
+      "id": "nd_Vi-KsWrB9ZJM",
+      "modelId": "mdl_04Y319l08JH2",
+      "label": "TabsView",
+      "type": "component",
+      "metadata": {
+        "file": "src/admin/components/common/TabsView.tsx",
+        "note": "Uses custom buttons NOT Radix Tabs. role=button not role=tab. Active tab uses border-b-blue-500 CSS class."
+      },
+      "verifiedAt": "2026-03-26T00:28:56.272Z",
+      "createdAt": "2026-03-26T00:28:56.272Z",
+      "updatedAt": "2026-03-26T00:28:56.272Z"
+    },
+    {
+      "id": "nd_QwDemHQLz8RA",
+      "modelId": "mdl_04Y319l08JH2",
+      "label": "docker-compose-e2e",
+      "type": "config",
+      "metadata": {
+        "file": "e2e/docker/docker-compose.e2e.yml",
+        "note": "Microservices need NODE_ENV=e2e not production. Postgres on 5433, Redis on 6380."
+      },
+      "verifiedAt": "2026-03-26T00:28:56.277Z",
+      "createdAt": "2026-03-26T00:28:56.277Z",
+      "updatedAt": "2026-03-26T00:28:56.277Z"
+    },
+    {
+      "id": "nd_CuV3gO-ES-Ky",
+      "modelId": "mdl_04Y319l08JH2",
+      "label": "entrypoint-e2e",
+      "type": "script",
+      "metadata": {
+        "file": "e2e/docker/entrypoint-e2e.sh",
+        "note": "Runs migrations, seed, admin user creation, then starts medusa."
+      },
+      "verifiedAt": "2026-03-26T00:28:56.277Z",
+      "createdAt": "2026-03-26T00:28:56.277Z",
+      "updatedAt": "2026-03-26T00:28:56.277Z"
+    },
+    {
+      "id": "nd_meu16fnKiLJx",
+      "modelId": "mdl_04Y319l08JH2",
+      "label": "fleet-db",
+      "type": "database",
+      "metadata": {
+        "name": "hb_fleet_rest_e2e"
+      },
+      "verifiedAt": "2026-03-26T00:28:56.274Z",
+      "createdAt": "2026-03-26T00:28:56.274Z",
+      "updatedAt": "2026-03-26T00:28:56.274Z"
+    },
+    {
+      "id": "nd_5yVJ2ApXOPZU",
+      "modelId": "mdl_04Y319l08JH2",
+      "label": "fleet-rest",
+      "type": "service",
+      "metadata": {
+        "repo": "hb-fleet-rest",
+        "port": 5020,
+        "note": "Must have NODE_ENV != production for DISABLE_AUTH to work"
+      },
+      "verifiedAt": "2026-03-26T00:28:56.273Z",
+      "createdAt": "2026-03-26T00:28:56.273Z",
+      "updatedAt": "2026-03-26T00:28:56.273Z"
+    },
+    {
+      "id": "nd_KoFFv1IkbUAL",
+      "modelId": "mdl_04Y319l08JH2",
+      "label": "isAuthDisabledForTesting",
+      "type": "function",
+      "metadata": {
+        "file": "src/common/utils/env.utils.ts",
+        "repo": "hb-fleet-rest",
+        "note": "Gates on NODE_ENV !== production. All 3 microservices share this pattern."
+      },
+      "verifiedAt": "2026-03-26T00:28:56.276Z",
+      "createdAt": "2026-03-26T00:28:56.276Z",
+      "updatedAt": "2026-03-26T00:28:56.276Z"
+    },
+    {
+      "id": "nd_5RvkaEEPlqnd",
+      "modelId": "mdl_04Y319l08JH2",
+      "label": "isPubSubDisabled",
+      "type": "function",
+      "metadata": {
+        "file": "src/common/utils/env.utils.ts",
+        "repo": "hb-fleet-rest",
+        "note": "Returns false when NODE_ENV=production regardless of DISABLE_AUTH. Caused GCP credential crash in e2e."
+      },
+      "verifiedAt": "2026-03-26T00:28:56.275Z",
+      "createdAt": "2026-03-26T00:28:56.275Z",
+      "updatedAt": "2026-03-26T00:28:56.275Z"
+    },
+    {
+      "id": "nd_AzBjY2nzl7An",
+      "modelId": "mdl_04Y319l08JH2",
+      "label": "medusa-proxy",
+      "type": "middleware",
+      "metadata": {
+        "note": "Admin UI proxies all microservice calls through server-side routes. Browser never talks to microservices directly."
+      },
+      "verifiedAt": "2026-03-26T00:28:56.275Z",
+      "createdAt": "2026-03-26T00:28:56.275Z",
+      "updatedAt": "2026-03-26T00:28:56.275Z"
+    },
+    {
+      "id": "nd_EWxpZMhmtGcd",
+      "modelId": "mdl_04Y319l08JH2",
+      "label": "notification-rest",
+      "type": "service",
+      "metadata": {
+        "repo": "hb-notification-rest",
+        "port": 5050
+      },
+      "verifiedAt": "2026-03-26T00:28:56.274Z",
+      "createdAt": "2026-03-26T00:28:56.274Z",
+      "updatedAt": "2026-03-26T00:28:56.274Z"
+    },
+    {
+      "id": "nd_DxHPi1xtwK61",
+      "modelId": "mdl_04Y319l08JH2",
+      "label": "payment-rest",
+      "type": "service",
+      "metadata": {
+        "repo": "hb-payment-rest",
+        "port": 5010
+      },
+      "verifiedAt": "2026-03-26T00:28:56.273Z",
+      "createdAt": "2026-03-26T00:28:56.273Z",
+      "updatedAt": "2026-03-26T00:28:56.273Z"
+    },
+    {
+      "id": "nd_JgUCDA6UNYAt",
+      "modelId": "mdl_04Y319l08JH2",
+      "label": "useFleet",
+      "type": "hook",
+      "metadata": {
+        "file": "src/admin/hooks/useFleet.ts",
+        "note": "Returns null on error (not empty array). This causes AG Grid to stay in loading state."
+      },
+      "verifiedAt": "2026-03-26T00:28:56.273Z",
+      "createdAt": "2026-03-26T00:28:56.273Z",
+      "updatedAt": "2026-03-26T00:28:56.273Z"
+    },
+    {
+      "id": "nd_fCWNz9_wrW_x",
+      "modelId": "mdl_04Y319l08JH2",
+      "label": "useFleetSearch",
+      "type": "hook",
+      "metadata": {
+        "file": "src/admin/hooks/useFleet.ts",
+        "note": "Returns null on error. AG Grid shows loading spinner indefinitely with null rowData."
+      },
+      "verifiedAt": "2026-03-26T00:28:56.273Z",
+      "createdAt": "2026-03-26T00:28:56.273Z",
+      "updatedAt": "2026-03-26T00:28:56.273Z"
+    },
+    {
+      "id": "nd_RN1o1oGMxhZu",
+      "modelId": "mdl_04Y319l08JH2",
+      "label": "waitForGridLoad",
+      "type": "function",
+      "metadata": {
+        "file": "e2e/pages/base.page.ts",
+        "note": "Must handle 3 states: rows present, no-rows overlay, or stuck loading (null data)"
+      },
+      "verifiedAt": "2026-03-26T00:28:56.276Z",
+      "createdAt": "2026-03-26T00:28:56.276Z",
+      "updatedAt": "2026-03-26T00:28:56.276Z"
+    }
+  ],
+  "edges": [
+    {
+      "id": "eg_bqh-q45c3Mr7",
+      "sourceId": "nd_5RvkaEEPlqnd",
+      "targetId": "nd_KoFFv1IkbUAL",
+      "relationship": "calls",
+      "metadata": {},
+      "weight": null,
+      "verifiedAt": "2026-03-26T00:28:56.279Z",
+      "createdAt": "2026-03-26T00:28:56.279Z",
+      "updatedAt": "2026-03-26T00:28:56.279Z"
+    },
+    {
+      "id": "eg_vCc7G7_mP2uB",
+      "sourceId": "nd_5yVJ2ApXOPZU",
+      "targetId": "nd_meu16fnKiLJx",
+      "relationship": "depends_on",
+      "metadata": {},
+      "weight": null,
+      "verifiedAt": "2026-03-26T00:28:56.279Z",
+      "createdAt": "2026-03-26T00:28:56.279Z",
+      "updatedAt": "2026-03-26T00:28:56.279Z"
+    },
+    {
+      "id": "eg_016QvWNhvqBm",
+      "sourceId": "nd_5yVJ2ApXOPZU",
+      "targetId": "nd_5RvkaEEPlqnd",
+      "relationship": "calls",
+      "metadata": {
+        "context": "startup, checks NODE_ENV"
+      },
+      "weight": null,
+      "verifiedAt": "2026-03-26T00:28:56.279Z",
+      "createdAt": "2026-03-26T00:28:56.279Z",
+      "updatedAt": "2026-03-26T00:28:56.279Z"
+    },
+    {
+      "id": "eg_IpSK4uvxdOKF",
+      "sourceId": "nd_8HuNAGy_ox41",
+      "targetId": "nd_ql3X8Y-Xqspr",
+      "relationship": "tests",
+      "metadata": {},
+      "weight": null,
+      "verifiedAt": "2026-03-26T00:28:56.280Z",
+      "createdAt": "2026-03-26T00:28:56.280Z",
+      "updatedAt": "2026-03-26T00:28:56.280Z"
+    },
+    {
+      "id": "eg_Aok7yNsxbAdd",
+      "sourceId": "nd_8HuNAGy_ox41",
+      "targetId": "nd_WClee5Nh1hJb",
+      "relationship": "tests",
+      "metadata": {},
+      "weight": null,
+      "verifiedAt": "2026-03-26T00:28:56.280Z",
+      "createdAt": "2026-03-26T00:28:56.280Z",
+      "updatedAt": "2026-03-26T00:28:56.280Z"
+    },
+    {
+      "id": "eg_5QI7-iNLKKoD",
+      "sourceId": "nd_8HuNAGy_ox41",
+      "targetId": "nd_Z0VUdhC1otqA",
+      "relationship": "tests",
+      "metadata": {},
+      "weight": null,
+      "verifiedAt": "2026-03-26T00:28:56.280Z",
+      "createdAt": "2026-03-26T00:28:56.280Z",
+      "updatedAt": "2026-03-26T00:28:56.280Z"
+    },
+    {
+      "id": "eg_VPytcmxlaHK6",
+      "sourceId": "nd_8HuNAGy_ox41",
+      "targetId": "nd_RN1o1oGMxhZu",
+      "relationship": "uses",
+      "metadata": {},
+      "weight": null,
+      "verifiedAt": "2026-03-26T00:28:56.280Z",
+      "createdAt": "2026-03-26T00:28:56.280Z",
+      "updatedAt": "2026-03-26T00:28:56.280Z"
+    },
+    {
+      "id": "eg_Qwoo7jNASr7-",
+      "sourceId": "nd_8HuNAGy_ox41",
+      "targetId": "nd_QwDemHQLz8RA",
+      "relationship": "uses",
+      "metadata": {},
+      "weight": null,
+      "verifiedAt": "2026-03-26T00:28:56.281Z",
+      "createdAt": "2026-03-26T00:28:56.281Z",
+      "updatedAt": "2026-03-26T00:28:56.281Z"
+    },
+    {
+      "id": "eg__E6OWMyliBIo",
+      "sourceId": "nd_8RGtr-AMiLgX",
+      "targetId": "nd_ql3X8Y-Xqspr",
+      "relationship": "belongs_to",
+      "metadata": {
+        "note": "Not actually FleetView, belongs to HB Order detail page"
+      },
+      "weight": null,
+      "verifiedAt": "2026-03-26T00:28:56.281Z",
+      "createdAt": "2026-03-26T00:28:56.281Z",
+      "updatedAt": "2026-03-26T00:28:56.281Z"
+    },
+    {
+      "id": "eg_XCJseJAawPO2",
+      "sourceId": "nd_AzBjY2nzl7An",
+      "targetId": "nd_5yVJ2ApXOPZU",
+      "relationship": "calls",
+      "metadata": {
+        "via": "API_BASE_URL env var, defaults to localhost:5020"
+      },
+      "weight": null,
+      "verifiedAt": "2026-03-26T00:28:56.278Z",
+      "createdAt": "2026-03-26T00:28:56.278Z",
+      "updatedAt": "2026-03-26T00:28:56.278Z"
+    },
+    {
+      "id": "eg_PYb76oH9PAiM",
+      "sourceId": "nd_AzBjY2nzl7An",
+      "targetId": "nd_DxHPi1xtwK61",
+      "relationship": "calls",
+      "metadata": {
+        "via": "API_BASE_URL env var, defaults to localhost:5010"
+      },
+      "weight": null,
+      "verifiedAt": "2026-03-26T00:28:56.278Z",
+      "createdAt": "2026-03-26T00:28:56.278Z",
+      "updatedAt": "2026-03-26T00:28:56.278Z"
+    },
+    {
+      "id": "eg_LVrmJVpRTMzR",
+      "sourceId": "nd_AzBjY2nzl7An",
+      "targetId": "nd_EWxpZMhmtGcd",
+      "relationship": "calls",
+      "metadata": {
+        "via": "API_BASE_URL env var, defaults to localhost:5050"
+      },
+      "weight": null,
+      "verifiedAt": "2026-03-26T00:28:56.279Z",
+      "createdAt": "2026-03-26T00:28:56.279Z",
+      "updatedAt": "2026-03-26T00:28:56.279Z"
+    },
+    {
+      "id": "eg_GMM_6XQi-IVU",
+      "sourceId": "nd_JgUCDA6UNYAt",
+      "targetId": "nd_AzBjY2nzl7An",
+      "relationship": "calls",
+      "metadata": {},
+      "weight": null,
+      "verifiedAt": "2026-03-26T00:28:56.278Z",
+      "createdAt": "2026-03-26T00:28:56.278Z",
+      "updatedAt": "2026-03-26T00:28:56.278Z"
+    },
+    {
+      "id": "eg_nl9I-gKNvBuH",
+      "sourceId": "nd_QwDemHQLz8RA",
+      "targetId": "nd_5yVJ2ApXOPZU",
+      "relationship": "configures",
+      "metadata": {},
+      "weight": null,
+      "verifiedAt": "2026-03-26T00:28:56.281Z",
+      "createdAt": "2026-03-26T00:28:56.281Z",
+      "updatedAt": "2026-03-26T00:28:56.281Z"
+    },
+    {
+      "id": "eg_5K8CgrX3lrrO",
+      "sourceId": "nd_QwDemHQLz8RA",
+      "targetId": "nd_DxHPi1xtwK61",
+      "relationship": "configures",
+      "metadata": {},
+      "weight": null,
+      "verifiedAt": "2026-03-26T00:28:56.281Z",
+      "createdAt": "2026-03-26T00:28:56.281Z",
+      "updatedAt": "2026-03-26T00:28:56.281Z"
+    },
+    {
+      "id": "eg_U38rvfGSeH7l",
+      "sourceId": "nd_QwDemHQLz8RA",
+      "targetId": "nd_EWxpZMhmtGcd",
+      "relationship": "configures",
+      "metadata": {},
+      "weight": null,
+      "verifiedAt": "2026-03-26T00:28:56.281Z",
+      "createdAt": "2026-03-26T00:28:56.281Z",
+      "updatedAt": "2026-03-26T00:28:56.281Z"
+    },
+    {
+      "id": "eg_vEPx94c-M5_S",
+      "sourceId": "nd_WClee5Nh1hJb",
+      "targetId": "nd_fCWNz9_wrW_x",
+      "relationship": "calls",
+      "metadata": {},
+      "weight": null,
+      "verifiedAt": "2026-03-26T00:28:56.278Z",
+      "createdAt": "2026-03-26T00:28:56.278Z",
+      "updatedAt": "2026-03-26T00:28:56.278Z"
+    },
+    {
+      "id": "eg_imLGz3YCe4aQ",
+      "sourceId": "nd_WClee5Nh1hJb",
+      "targetId": "nd_-VEkTzvh6MWw",
+      "relationship": "renders",
+      "metadata": {},
+      "weight": null,
+      "verifiedAt": "2026-03-26T00:28:56.279Z",
+      "createdAt": "2026-03-26T00:28:56.279Z",
+      "updatedAt": "2026-03-26T00:28:56.279Z"
+    },
+    {
+      "id": "eg_4Rdc1Ef-JD7b",
+      "sourceId": "nd_Z0VUdhC1otqA",
+      "targetId": "nd_-VEkTzvh6MWw",
+      "relationship": "renders",
+      "metadata": {},
+      "weight": null,
+      "verifiedAt": "2026-03-26T00:28:56.280Z",
+      "createdAt": "2026-03-26T00:28:56.280Z",
+      "updatedAt": "2026-03-26T00:28:56.280Z"
+    },
+    {
+      "id": "eg_XTDEEOZVmZ9-",
+      "sourceId": "nd_fCWNz9_wrW_x",
+      "targetId": "nd_AzBjY2nzl7An",
+      "relationship": "calls",
+      "metadata": {},
+      "weight": null,
+      "verifiedAt": "2026-03-26T00:28:56.278Z",
+      "createdAt": "2026-03-26T00:28:56.278Z",
+      "updatedAt": "2026-03-26T00:28:56.278Z"
+    },
+    {
+      "id": "eg_LlbY03CxakNS",
+      "sourceId": "nd_ql3X8Y-Xqspr",
+      "targetId": "nd_Vi-KsWrB9ZJM",
+      "relationship": "uses",
+      "metadata": {},
+      "weight": null,
+      "verifiedAt": "2026-03-26T00:28:56.277Z",
+      "createdAt": "2026-03-26T00:28:56.277Z",
+      "updatedAt": "2026-03-26T00:28:56.277Z"
+    },
+    {
+      "id": "eg_btK7ayw_dFis",
+      "sourceId": "nd_ql3X8Y-Xqspr",
+      "targetId": "nd_JgUCDA6UNYAt",
+      "relationship": "calls",
+      "metadata": {},
+      "weight": null,
+      "verifiedAt": "2026-03-26T00:28:56.278Z",
+      "createdAt": "2026-03-26T00:28:56.278Z",
+      "updatedAt": "2026-03-26T00:28:56.278Z"
+    },
+    {
+      "id": "eg_TkYYWT5wR4-e",
+      "sourceId": "nd_ql3X8Y-Xqspr",
+      "targetId": "nd_-VEkTzvh6MWw",
+      "relationship": "renders",
+      "metadata": {},
+      "weight": null,
+      "verifiedAt": "2026-03-26T00:28:56.279Z",
+      "createdAt": "2026-03-26T00:28:56.279Z",
+      "updatedAt": "2026-03-26T00:28:56.279Z"
+    }
+  ]
+}
