@@ -142,6 +142,52 @@ Type queries include subtypes: `mm q model -t service` finds services AND micros
 | belongs_to | has_member |
 | renders | rendered_by |
 
+## Best Practices for Building Models
+
+### The Hybrid Approach (Recommended)
+
+After testing both "review everything first, then batch" and "enter as you go", the optimal workflow is:
+
+1. **Explore first (5-10 min)** — Scan the codebase or domain. Read key files, understand major components. Don't enter anything yet.
+
+2. **Batch the skeleton** — Create all major nodes and their primary relationships in one batch command. This captures the obvious architecture quickly.
+   ```bash
+   mm batch myapp <<EOF
+   add Frontend --type component -m file=src/App.tsx
+   add API --type service -m file=src/api/server.ts
+   add DB --type database
+   link Frontend calls API
+   link API depends_on DB
+   EOF
+   ```
+
+3. **Add discoveries incrementally** — During coding, when you discover non-obvious relationships (e.g., "this function silently depends on NODE_ENV being set"), add them immediately:
+   ```bash
+   mm add myapp isPubSubDisabled --type function -m "note=returns false in production regardless of DISABLE_AUTH"
+   mm link myapp fleet-rest calls isPubSubDisabled
+   ```
+
+4. **Review after sessions** — Quick pass: "Did I discover anything worth keeping?" Batch any accumulated additions.
+
+### What to Model (and What Not To)
+
+**DO model:**
+- Services, modules, and their dependencies (the skeleton)
+- Non-obvious relationships you'll forget (the surprises)
+- Cross-repo connections (A calls B in a different repo)
+- Config dependencies that cause subtle bugs
+- External service integrations
+
+**DON'T model:**
+- Every file in the repo (too granular, maintain cost > query value)
+- Internal function calls within a single module (grep handles this)
+- Dependencies that are obvious from imports (the code is the model)
+- Anything that changes every commit (constant staleness)
+
+### Granularity Sweet Spot
+
+Module/service level is the sweet spot for code models. Too fine (every function) = expensive to maintain. Too coarse (just repo names) = barely better than a README. The test: would a new session benefit from knowing this relationship exists? If yes, model it.
+
 ## Common Workflows
 
 ### Map a codebase architecture
