@@ -157,6 +157,31 @@ DOT export maps node types to shapes and colors:
 | Infra | Orange (#fed7aa) | database=cylinder, server=box3d |
 | Concept | Purple (#e9d5ff) | process=hexagon, event=parallelogram |
 
+### Model an org chart
+
+```bash
+mm create acme -t org -d "Acme Corp organizational structure"
+mm batch acme <<EOF
+add CEO --type person -m role="CEO & Founder"
+add VP-Eng --type person -m role="VP Engineering"
+add Dev-1 --type person -m role="Senior Engineer"
+add Dev-2 --type person -m role="Engineer (Part-Time)"
+link CEO leads acme
+link VP-Eng reports_to CEO
+link Dev-1 reports_to VP-Eng
+link Dev-2 reports_to VP-Eng
+link Dev-2 reports_to CEO
+EOF
+
+# Who reports to the CEO (direct + transitive)?
+mm q acme --affects CEO
+
+# What's the reporting chain from Dev-1 to CEO?
+mm path acme Dev-1 CEO
+```
+
+Multiple `reports_to` edges model dual-reporting (e.g., matrix orgs) naturally. Use metadata for employment details like part-time status rather than separate node types.
+
 ### Share between agents (JSON-LD)
 
 ```bash

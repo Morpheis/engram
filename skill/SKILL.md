@@ -188,6 +188,27 @@ After testing both "review everything first, then batch" and "enter as you go", 
 
 Module/service level is the sweet spot for code models. Too fine (every function) = expensive to maintain. Too coarse (just repo names) = barely better than a README. The test: would a new session benefit from knowing this relationship exists? If yes, model it.
 
+### Org Charts and People Graphs
+
+The tool handles org charts well with `type: org` models and `type: person` nodes. A few tips:
+
+**Dual-reporting:** People often report to multiple managers. Use multiple `reports_to` links — the graph handles this naturally:
+```bash
+mm link Ken reports_to Tom
+mm link Ken reports_to Deepak
+```
+
+**Part-time / contractor status:** Encode employment status in metadata, not separate node types:
+```bash
+mm add Brandon --type person -m role="Hardware Manager (Part-Time)"
+```
+
+**Hierarchy queries work well:** `mm q org --affects CEO` shows everyone who reports up to that person (direct and transitive). `mm path org Engineer CEO` shows the reporting chain.
+
+**Iterative correction is the norm.** Org charts are rarely right on the first pass — you'll get the public website version, then the human corrects you. Batch the skeleton from public info, then update incrementally as corrections come in. The `rm` and `unlink` commands make this cheap.
+
+**Keep it current:** People leave, roles change. Org models go stale faster than code models. When you learn someone left, `rm` them immediately rather than marking them inactive.
+
 ## Common Workflows
 
 ### Map a codebase architecture
