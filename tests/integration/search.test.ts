@@ -184,6 +184,44 @@ describe('search command', () => {
     expect(output).toContain('MinerController');
   });
 
+  it('multi-word queries match hyphenated labels', () => {
+    // Regression: "Tom Merkle" should match "Tom-Merkle"
+    mm('create org-test --type org');
+    mm('add org-test Tom-Merkle --type person -m role="CEO"');
+    mm('add org-test Jane-Smith --type person -m role="CTO"');
+
+    const output = mm('search "Tom Merkle" --json');
+    const results = JSON.parse(output).results;
+    expect(results.length).toBeGreaterThan(0);
+    expect(results.some((r: any) => r.node.label === 'Tom-Merkle')).toBe(true);
+  });
+
+  it('multi-word queries find results matching any term', () => {
+    // "Tom Merkle" should also find nodes containing just "Tom" in metadata
+    mm('create org-test --type org');
+    mm('add org-test Engineering --type team -m note="Tom leads this team"');
+    mm('add org-test Unrelated --type service');
+
+    const output = mm('search "Tom Merkle" --json');
+    const results = JSON.parse(output).results;
+    expect(results.some((r: any) => r.node.label === 'Engineering')).toBe(true);
+    expect(results.every((r: any) => r.node.label !== 'Unrelated')).toBe(true);
+  });
+
+  it('ranks label matches above metadata matches', () => {
+    // Regression: "Tom-Merkle" should rank above nodes that merely mention "Tom" in metadata
+    mm('create org-test --type org');
+    mm('add org-test Tom-Merkle --type person -m role="CEO"');
+    mm('add org-test Engineering --type team -m note="Tom leads this team"');
+    mm('add org-test Some-Project --type service -m note="Created by Tom last week"');
+
+    const output = mm('search "Tom" --json');
+    const results = JSON.parse(output).results;
+    expect(results.length).toBeGreaterThanOrEqual(2);
+    // Tom-Merkle (label match) should be first
+    expect(results[0].node.label).toBe('Tom-Merkle');
+  });
+
   it('supports multiple --exclude flags', () => {
     mm('create model-a --type code');
     mm('create model-b --type code');
