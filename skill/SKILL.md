@@ -319,3 +319,40 @@ engram refresh myapp
 **The file→node mapping is the bridge.** Always include `file=path/to/file.ts` in node metadata — this is what `check` and `diff` use to map git changes to graph nodes. Without it, the node won't appear in staleness reports.
 
 **After a rename/refactor:** If you renamed files but the structure is the same, just update file metadata and refresh. If you restructured (split a module, merged services), update the graph to match and then refresh.
+
+### Updating engrams after code changes (source-of-truth workflow)
+
+When you've just modified code and need to update the model, **always verify against the actual source** — never update from memory alone.
+
+```bash
+# 1. See what files changed (the source of truth)
+cd /path/to/repo && git diff HEAD~N --stat        # or git diff main..branch --stat
+
+# 2. For each changed file, review what actually changed
+git diff HEAD~N -- src/changed-file.ts
+
+# 3. List current engram nodes for this model
+engram nodes mymodel
+
+# 4. Cross-reference: for each changed file, find its engram node(s)
+#    Check if the node's metadata/note is still accurate
+#    Check if edges are still correct (added/removed imports, calls, etc.)
+
+# 5. Update stale nodes with verified information from the diff
+engram update mymodel <node-id> -m 'note=Updated description from actual code'
+
+# 6. Check for stale edges (did you remove a dependency? add a new call?)
+engram edges mymodel --from <changed-node>
+engram edges mymodel --to <changed-node>
+# Remove edges that no longer exist, add new ones
+
+# 7. Add nodes for new exports/modules introduced in the changes
+engram add mymodel NewThing -t function -m file=src/file.ts 'note=...'
+
+# 8. Refresh the git anchor
+engram refresh mymodel
+```
+
+**Anti-pattern:** Updating engram nodes from working memory of what you *think* you changed. The code is the source of truth — always `git diff` first, then update the graph to match. This is especially important after multi-file refactors where it's easy to miss removed dependencies or new relationships.
+
+**The 30-second rule:** If you can't verify an engram update against the actual source in 30 seconds, you're guessing. Run the diff.
