@@ -269,6 +269,36 @@ If you're an AI agent using Engram, add this to your workspace bootstrap file (e
 
 This ensures new sessions know to both **use** and **maintain** the knowledge graph.
 
+### Pre-work query habit
+
+Query your knowledge graph **before** starting work on any repo or project:
+
+```bash
+# Hashbranch repos
+engram q hashbranch <repo-name>
+
+# Personal projects
+engram q personal-projects <project-name>
+
+# Don't know which model? Search across all
+engram xq <keyword>
+```
+
+This surfaces existing connections, dependencies, and context you've already mapped — so you don't rediscover things or miss relationships. After finishing work, update with any new nodes or edges you discovered.
+
+**Add this to your workflow instructions** (e.g., in a development skill or runbook):
+
+```markdown
+## Research Phase
+1. **Query engram first:** `engram q <model> <repo-name>` — see connections and dependencies
+2. Identify which repositories need changes
+3. Understand the current code structure
+4. Create a high-level plan
+5. **Update engram after:** add new nodes/edges for anything discovered during research
+```
+
+The goal: engram becomes your **first stop** when starting work, not an afterthought.
+
 ### First-time setup: seed your models
 
 After installing, do a one-time scan of your environment to seed useful models:
