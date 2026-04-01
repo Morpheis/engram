@@ -323,11 +323,30 @@ This surfaces existing connections, dependencies, and context you've already map
 
 The goal: engram becomes your **first stop** when starting work, not an afterthought.
 
+### Scaffold: auto-generate engram from a repo
+
+Use the scaffold tool to generate a starting-point engram from a repository's structure:
+
+```bash
+# Preview what would be generated
+./tools/scaffold.sh ~/path/to/repo model-name --dry-run
+
+# Generate batch file for import
+./tools/scaffold.sh ~/path/to/repo model-name
+
+# Import the generated batch
+cd ~/Personal/engram && npx tsx src/index.ts batch <model> < /tmp/engram-scaffold-*.txt
+```
+
+The scaffold scans for: modules, API routes, services, commands, workflows, clients, and package dependencies. It generates nodes and `contains` edges as a **skeleton** — enrich with descriptions and cross-service relationships after import.
+
+Supports: Node.js/TypeScript repos (Medusa, NestJS, CLI tools), monorepos (`packages/`, `apps/`).
+
 ### First-time setup: seed your models
 
 After installing, do a one-time scan of your environment to seed useful models:
 
-1. **Code models** — scan your repos. For each project, create a model with major modules and their dependencies.
+1. **Code models** — use `scaffold.sh` to generate initial nodes from repo structure, then enrich with descriptions and cross-repo edges.
 2. **Org model** — if you work at a company, model the people, teams, repos, and service relationships. Include trust levels for people you interact with.
 3. **Infrastructure model** — map your local tools and how they connect: email chains (ProtonMail → Bridge → wrapper), SSH configs, credential locations, channel setups.
 4. **People model** — who do you interact with? What are their roles, communication channels, trust levels?

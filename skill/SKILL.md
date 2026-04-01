@@ -132,6 +132,21 @@ add mymodel NodeB --type database
 link mymodel NodeA depends-on NodeB" | engram batch mymodel
 ```
 
+### Scaffold (auto-generate engram from repo)
+
+Generate a starting-point engram from a repository's file structure. Outputs batch import commands for top-level modules, API routes, services, workflows, clients, and commands.
+
+```bash
+# Preview what would be generated (no changes)
+~/Personal/engram/tools/scaffold.sh ~/path/to/repo model-name --dry-run
+
+# Generate batch file, then import
+~/Personal/engram/tools/scaffold.sh ~/path/to/repo model-name
+engram batch <model> < /tmp/engram-scaffold-*.txt
+```
+
+The scaffold is a **skeleton** — enrich nodes with descriptions and add cross-service relationship edges after import. Supports Node.js/TypeScript repos (Medusa, NestJS, CLI), monorepos.
+
 ## Built-in Types (extensible)
 
 ```
