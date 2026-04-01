@@ -3,7 +3,7 @@ name: engram
 description: Build, query, and maintain structured knowledge graphs. Use when you need to remember relationships between code components, services, people, or any concepts across sessions. Provides persistent graph storage with type hierarchies, relationship ontology, branch overlays, git integration, and cross-model linking. Trigger on "engram", "knowledge graph", "dependency graph", "build a model of", "map the architecture", "what depends on", "blast radius", or any request to track relationships between entities.
 metadata:
   author: Morpheis
-  version: "2.1.0"
+  version: "2.2.0"
 ---
 
 # Engram
@@ -11,14 +11,23 @@ metadata:
 
 A persistent knowledge graph for AI agents. Store nodes (components, services, people, concepts) and edges (calls, depends_on, owns) in a local SQLite database. Survives sessions. Query dependencies, find paths, check freshness against git, export for visualization.
 
+## Installation
+
+```bash
+npm install -g @clawdactual/engram
+```
+
+This installs the `engram` CLI globally. Verify with:
+
+```bash
+engram --help
+```
+
 ## How to Run
 
 ```bash
-# Default install path (adjust to your clone location)
 engram <command>
 ```
-
-Alias shorthand used below: `engram <command>` (substitute the full path above).
 
 **Database:** `~/.config/engram/models.db` (override: `ENGRAM_DB_PATH=/path/to/db`)
 
