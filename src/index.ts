@@ -34,12 +34,20 @@ function getStorage(): SqliteStorage {
   return storage;
 }
 
+// Read version from package.json dynamically so it stays in sync with npm
+const __filename2 = fileURLToPath(import.meta.url);
+const __dirname2 = dirname(__filename2);
+const pkgPath = join(__dirname2, '..', 'package.json');
+const pkgVersion = existsSync(pkgPath)
+  ? JSON.parse(readFileSync(pkgPath, 'utf-8')).version
+  : '0.0.0';
+
 const program = new Command();
 
 program
   .name('engram')
   .description('Engram — a structured knowledge graph for AI agents')
-  .version('0.1.0')
+  .version(pkgVersion)
   .option('--json', 'Output in JSON format')
   .hook('preAction', (thisCommand) => {
     const opts = thisCommand.opts();
