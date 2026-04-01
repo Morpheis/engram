@@ -46,9 +46,9 @@ afterEach(() => {
   rmSync(repoDir, { recursive: true, force: true });
 });
 
-// ── mm check ────────────────────────────────────────
+// ── engram check ────────────────────────────────────────
 
-describe('mm check', () => {
+describe('engram check', () => {
   it('reports fresh model when anchor matches HEAD', () => {
     const head = git('rev-parse HEAD');
     mm(`create test-arch -t code -r "${repoDir}"`);
@@ -77,7 +77,7 @@ describe('mm check', () => {
     expect(output).toContain('commit');
     expect(output).toContain('useFleet');
     expect(output).toContain('Affected nodes: 1');
-    expect(output).toContain('mm refresh test-arch');
+    expect(output).toContain('engram refresh test-arch');
   });
 
   it('reports model with no anchor', () => {
@@ -86,7 +86,7 @@ describe('mm check', () => {
 
     const output = mm('check test-arch');
     expect(output).toContain('no anchor');
-    expect(output).toContain('mm refresh test-arch');
+    expect(output).toContain('engram refresh test-arch');
   });
 
   it('outputs JSON with --json flag', () => {
@@ -149,9 +149,9 @@ describe('mm check', () => {
   });
 });
 
-// ── mm refresh ──────────────────────────────────────
+// ── engram refresh ──────────────────────────────────────
 
-describe('mm refresh', () => {
+describe('engram refresh', () => {
   it('sets anchor and marks all verified', () => {
     mm(`create test-arch -t code -r "${repoDir}"`);
     mm('add test-arch api-server -t service');
@@ -193,9 +193,9 @@ describe('mm refresh', () => {
   });
 });
 
-// ── mm diff ─────────────────────────────────────────
+// ── engram diff ─────────────────────────────────────────
 
-describe('mm diff', () => {
+describe('engram diff', () => {
   it('reports no diff when fresh', () => {
     mm(`create test-arch -t code -r "${repoDir}"`);
     mm('refresh test-arch');
@@ -303,9 +303,9 @@ describe('mm diff', () => {
   });
 });
 
-// ── mm stale ────────────────────────────────────────
+// ── engram stale ────────────────────────────────────────
 
-describe('mm stale', () => {
+describe('engram stale', () => {
   it('shows no stale items for fresh model', () => {
     mm(`create test-arch -t code -r "${repoDir}"`);
     mm('add test-arch api-server -t service');
@@ -346,21 +346,21 @@ describe('mm stale', () => {
     expect(output2).toContain('No stale items');
   });
 
-  it('suggests mm check for code models', () => {
+  it('suggests engram check for code models', () => {
     mm(`create test-arch -t code -r "${repoDir}"`);
     mm('add test-arch api-server -t service');
     mm('refresh test-arch');
 
     const output = mm('stale test-arch');
-    expect(output).toContain('mm check test-arch');
+    expect(output).toContain('engram check test-arch');
   });
 
-  it('does not suggest mm check for non-code models', () => {
+  it('does not suggest engram check for non-code models', () => {
     mm('create concepts -t concept');
     mm('add concepts idea -t concept');
 
     const output = mm('stale concepts');
-    expect(output).not.toContain('mm check');
+    expect(output).not.toContain('engram check');
   });
 
   it('outputs JSON with --json flag', () => {

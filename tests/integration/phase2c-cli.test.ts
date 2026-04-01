@@ -40,10 +40,10 @@ describe('JSON-LD Export', () => {
 
     // Must have @context
     expect(data['@context']).toBeDefined();
-    expect(data['@context'].mm).toBe('https://github.com/Morpheis/engram/schema#');
+    expect(data['@context'].engram).toBe('https://github.com/Morpheis/engram/schema#');
 
     // Must have @type
-    expect(data['@type']).toBe('mm:Model');
+    expect(data['@type']).toBe('engram:Model');
 
     // Must have model info
     expect(data.name).toBe('my-arch');
@@ -60,8 +60,8 @@ describe('JSON-LD Export', () => {
     const output = mm('export test');
     const data = JSON.parse(output);
 
-    expect(data['@context'].calls).toBe('mm:calls');
-    expect(data['@context'].called_by).toBe('mm:called_by');
+    expect(data['@context'].calls).toBe('engram:calls');
+    expect(data['@context'].called_by).toBe('engram:called_by');
   });
 
   it('JSON-LD export includes type definitions', () => {
@@ -211,8 +211,8 @@ describe('JSON-LD Import', () => {
 
   it('strips @context and @type during import', () => {
     const jsonld = {
-      '@context': { mm: 'https://github.com/Morpheis/engram/schema#' },
-      '@type': 'mm:Model',
+      '@context': { engram: 'https://github.com/Morpheis/engram/schema#' },
+      '@type': 'engram:Model',
       name: 'context-test',
       modelType: 'concept',
       nodes: [{ label: 'TestNode', type: 'service' }],
@@ -394,6 +394,6 @@ describe('Branch Overlay Export CLI', () => {
     const data = JSON.parse(output);
 
     expect(data['@context']).toBeDefined();
-    expect(data['@type']).toBe('mm:Model');
+    expect(data['@type']).toBe('engram:Model');
   });
 });
