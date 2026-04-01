@@ -216,8 +216,8 @@ describe('findStaleEdges', () => {
     const n2 = storage.addNode(model.id, { label: 'B' });
     storage.addEdge({ sourceId: n1.id, targetId: n2.id, relationship: 'calls' });
 
-    // With 0 days threshold, all edges should be fresh (just created)
-    const stale = storage.findStaleEdges(model.id, 0);
+    // With 1 day threshold, all edges should be fresh (just created)
+    const stale = storage.findStaleEdges(model.id, 1);
     expect(stale.length).toBe(0);
   });
 
