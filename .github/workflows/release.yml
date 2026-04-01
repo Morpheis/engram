@@ -40,6 +40,9 @@ jobs:
 
       - run: npm test
 
+      - name: Verify skill command works
+        run: node dist/index.js skill --path
+
       - name: Configure git
         run: |
           git config user.name "github-actions[bot]"
