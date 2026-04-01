@@ -165,8 +165,9 @@ describe('CLI Integration', () => {
     mm('rm test A');
 
     const nodes = mm('nodes test');
-    expect(nodes).not.toContain('A');
-    expect(nodes).toContain('B');
+    // Match label at start of line (avoid matching 'A' in random node IDs)
+    expect(nodes).not.toMatch(/^\s*A\s/m);
+    expect(nodes).toMatch(/^\s*B\s/m);
 
     const edges = mm('edges test');
     expect(edges).toContain('No edges');
