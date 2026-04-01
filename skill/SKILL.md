@@ -2,7 +2,7 @@
 name: engram
 description: Build, query, and maintain structured knowledge graphs. Use when you need to remember relationships between code components, services, people, or any concepts across sessions. Provides persistent graph storage with type hierarchies, relationship ontology, branch overlays, git integration, and cross-model linking. Trigger on "engram", "knowledge graph", "dependency graph", "build a model of", "map the architecture", "what depends on", "blast radius", or any request to track relationships between entities.
 metadata:
-  author: ClawdActual
+  author: Morpheis
   version: "2.1.0"
 ---
 
@@ -15,7 +15,7 @@ A persistent knowledge graph for AI agents. Store nodes (components, services, p
 
 ```bash
 # Default install path (adjust to your clone location)
-cd ~/Personal/engram && npx tsx src/index.ts <command>
+engram <command>
 ```
 
 Alias shorthand used below: `engram <command>` (substitute the full path above).
@@ -24,7 +24,7 @@ Alias shorthand used below: `engram <command>` (substitute the full path above).
 
 **Global flag:** `--json` on any command outputs structured JSON.
 
-**Session awareness:** If `## 🔗 Knowledge Graph` appears in your recalled context, that's Engram data. Add a line to your workspace bootstrap file (e.g., `AGENTS.md`) so future sessions know the system exists and should maintain it. See the README's "Agent Setup" section.
+**Session awareness:** Add a line to your workspace bootstrap file (e.g., `AGENTS.md`) so future sessions know the knowledge graph exists and should maintain it. See the README's "Agent Setup" section.
 
 ## Quick Reference
 
@@ -138,10 +138,10 @@ Generate a starting-point engram from a repository's file structure. Outputs bat
 
 ```bash
 # Preview what would be generated (no changes)
-~/Personal/engram/tools/scaffold.sh ~/path/to/repo model-name --dry-run
+engram-scaffold ~/path/to/repo model-name --dry-run
 
-# Generate batch file, then import
-~/Personal/engram/tools/scaffold.sh ~/path/to/repo model-name
+# Generate batch file, then import (scaffold.sh lives in the engram repo's tools/ directory)
+./tools/scaffold.sh ~/path/to/repo model-name
 engram batch <model> < /tmp/engram-scaffold-*.txt
 ```
 

@@ -9,8 +9,8 @@
 #   ./scaffold.sh <repo-path> <model-name> [--dry-run]
 #
 # Example:
-#   ./scaffold.sh ~/Hashbranch/hb-fleet-rest hashbranch
-#   ./scaffold.sh ~/Personal/chitin personal-projects --dry-run
+#   ./scaffold.sh ~/repos/my-api my-company
+#   ./scaffold.sh ~/projects/my-tool personal-projects --dry-run
 
 set -euo pipefail
 
@@ -213,8 +213,8 @@ if [ "$DRY_RUN" = "--dry-run" ]; then
   cat "$BATCH_FILE"
   echo "${YELLOW}--- END DRY RUN ---${RESET}"
   echo ""
-  echo "To import: cd ~/Personal/engram && npx tsx src/index.ts batch ${MODEL} < ${BATCH_FILE}"
+  echo "To import: engram batch ${MODEL} < ${BATCH_FILE}"
 else
-  echo "To import: cd ~/Personal/engram && npx tsx src/index.ts batch ${MODEL} < ${BATCH_FILE}"
+  echo "To import: engram batch ${MODEL} < ${BATCH_FILE}"
   echo "To preview first: cat ${BATCH_FILE}"
 fi

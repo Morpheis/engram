@@ -106,17 +106,17 @@ Branch overlays let you track knowledge changes on feature branches without modi
 
 ```bash
 # 1. Create overlay when starting work on a feature branch
-engram branch hashbranch feature/CLA-123
+engram branch my-company feature/PROJ-123
 
 # 2. Add nodes/edges scoped to the overlay
-engram add hashbranch new-endpoint -t endpoint -m description="..." --branch feature/CLA-123
-engram link hashbranch some-service uses new-endpoint --branch feature/CLA-123
+engram add my-company new-endpoint -t endpoint -m description="..." --branch feature/PROJ-123
+engram link my-company some-service uses new-endpoint --branch feature/PROJ-123
 
 # 3. When the PR merges, merge the overlay into the base model
-engram merge hashbranch feature/CLA-123
+engram merge my-company feature/PROJ-123
 
 # 4. If the branch is abandoned, discard the overlay
-engram branch hashbranch feature/CLA-123 --delete
+engram branch my-company feature/PROJ-123 --delete
 ```
 
 | Command | Description |
@@ -284,11 +284,10 @@ Extend with `engram type add <label> --parent <existing>`.
 If you're an AI agent using Engram, add this to your workspace bootstrap file (e.g., `AGENTS.md`) so future sessions know the system exists:
 
 ```markdown
-- **Engram:** `/path/to/engram` — your persistent knowledge graph (relationships between
-  code, people, systems). If `## 🔗 Knowledge Graph` appears in recalled context, that's
-  engram. When you discover non-obvious relationships during work, add them:
-  `cd /path/to/engram && npx tsx src/index.ts add <model> <node> ...`
-  (read the skill for full usage).
+- **Engram:** your persistent knowledge graph (relationships between code, people,
+  systems). When you discover non-obvious relationships during work, add them:
+  `engram add <model> <node> -t <type> -m key=value`
+  (read the engram skill for full usage).
 ```
 
 This ensures new sessions know to both **use** and **maintain** the knowledge graph.
@@ -298,8 +297,8 @@ This ensures new sessions know to both **use** and **maintain** the knowledge gr
 Query your knowledge graph **before** starting work on any repo or project:
 
 ```bash
-# Hashbranch repos
-engram q hashbranch <repo-name>
+# Company repos
+engram q my-company <repo-name>
 
 # Personal projects
 engram q personal-projects <project-name>
@@ -335,7 +334,7 @@ Use the scaffold tool to generate a starting-point engram from a repository's st
 ./tools/scaffold.sh ~/path/to/repo model-name
 
 # Import the generated batch
-cd ~/Personal/engram && npx tsx src/index.ts batch <model> < /tmp/engram-scaffold-*.txt
+engram batch <model> < /tmp/engram-scaffold-*.txt
 ```
 
 The scaffold scans for: modules, API routes, services, commands, workflows, clients, and package dependencies. It generates nodes and `contains` edges as a **skeleton** — enrich with descriptions and cross-service relationships after import.
@@ -348,7 +347,7 @@ After installing, do a one-time scan of your environment to seed useful models:
 
 1. **Code models** — use `scaffold.sh` to generate initial nodes from repo structure, then enrich with descriptions and cross-repo edges.
 2. **Org model** — if you work at a company, model the people, teams, repos, and service relationships. Include trust levels for people you interact with.
-3. **Infrastructure model** — map your local tools and how they connect: email chains (ProtonMail → Bridge → wrapper), SSH configs, credential locations, channel setups.
+3. **Infrastructure model** — map your local tools and how they connect: email services, SSH configs, credential locations, channel setups.
 4. **People model** — who do you interact with? What are their roles, communication channels, trust levels?
 
 The goal: a fresh session should be able to query the graph and immediately understand your operational context without reading 10 config files.
