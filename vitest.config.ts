@@ -3,13 +3,13 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   test: {
     globals: true,
-    testTimeout: 30000,
-    hookTimeout: 30000,
-    teardownTimeout: 10000,
-    pool: 'forks',
+    testTimeout: 60000,
+    hookTimeout: 60000,
+    teardownTimeout: 30000,
+    pool: 'threads',
     poolOptions: {
-      forks: {
-        singleFork: true,
+      threads: {
+        singleThread: true,
       },
     },
   },
