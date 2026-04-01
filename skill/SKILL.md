@@ -92,14 +92,22 @@ engram rel add <label> [--inverse inv]
 engram rel rm <label>
 ```
 
-### Branches (code model overlays)
+### Branch Overlays (feature branch knowledge tracking)
+
+Use overlays when working on feature branches, reviewing PRs, or doing any work that hasn't merged yet. Overlays keep the base model clean while capturing architectural discoveries. Merge the overlay when the PR/branch merges; delete it if the branch is abandoned.
 
 ```bash
 engram branch <model> <branch-name>             # create overlay
 engram branch <model> --list                    # list overlays
 engram merge <model> <branch-name>              # fold into parent
 engram branch <model> <branch-name> --delete    # discard
+
+# Add nodes/edges to an overlay (use --branch flag)
+engram add <model> <label> -t <type> -m key=value --branch <branch-name>
+engram link <model> <source> <rel> <target> --branch <branch-name>
 ```
+
+**Key rule:** When working on a feature branch, always use `--branch <branch-name>`. Only write directly to the base model for merged/stable knowledge.
 
 ### Git Integration (code models only)
 

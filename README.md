@@ -93,13 +93,37 @@ npx tsx src/index.ts <command>
 | `engram rel add <label> [--inverse inv]` | Add a custom relationship |
 | `engram rel rm <label>` | Remove a custom relationship |
 
-### Branches
+### Branch Overlays
+
+Branch overlays let you track knowledge changes on feature branches without modifying the base model. When the feature branch merges (PR lands), merge the overlay into the base model. If the branch is abandoned, delete the overlay — nothing pollutes the base graph.
+
+**Why use overlays:**
+- Code reviewers can capture architectural discoveries during PR review
+- Sub-agents working on feature branches can contribute engram without premature commits
+- Knowledge tracks the code lifecycle: branch → review → merge → engram merge
+
+**Workflow:**
+
+```bash
+# 1. Create overlay when starting work on a feature branch
+engram branch hashbranch feature/CLA-123
+
+# 2. Add nodes/edges scoped to the overlay
+engram add hashbranch new-endpoint -t endpoint -m description="..." --branch feature/CLA-123
+engram link hashbranch some-service uses new-endpoint --branch feature/CLA-123
+
+# 3. When the PR merges, merge the overlay into the base model
+engram merge hashbranch feature/CLA-123
+
+# 4. If the branch is abandoned, discard the overlay
+engram branch hashbranch feature/CLA-123 --delete
+```
 
 | Command | Description |
 |---|---|
 | `engram branch <model> <name>` | Create a branch overlay |
 | `engram branch <model> --list` | List branch overlays |
-| `engram merge <model> <name>` | Merge overlay into parent |
+| `engram merge <model> <name>` | Merge overlay into base model |
 | `engram branch <model> <name> --delete` | Discard overlay |
 
 ### Git Integration
