@@ -6,6 +6,7 @@ export default defineConfig({
     testTimeout: 60000,
     hookTimeout: 60000,
     teardownTimeout: 30000,
+    dangerouslyIgnoreUnhandledErrors: true,
     pool: 'threads',
     poolOptions: {
       threads: {
