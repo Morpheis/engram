@@ -85,7 +85,10 @@ program
     if (opts.path) {
       console.log(skillPath);
     } else {
-      console.log(readFileSync(skillPath, 'utf-8'));
+      let content = readFileSync(skillPath, 'utf-8');
+      // Inject current package version into frontmatter
+      content = content.replace(/^(---\n[\s\S]*?)version:\s*["']?[\d.]+["']?/m, `$1version: "${pkgVersion}"`);
+      console.log(content);
     }
   });
 
