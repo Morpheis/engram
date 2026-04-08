@@ -1,4 +1,4 @@
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 
 export interface DiffFile {
   status: 'A' | 'M' | 'D' | 'R';
@@ -6,16 +6,20 @@ export interface DiffFile {
   oldPath?: string; // for renames
 }
 
+function runGit(repoPath: string, args: string[]): string {
+  return execFileSync('git', args, {
+    cwd: repoPath,
+    encoding: 'utf-8',
+    stdio: ['pipe', 'pipe', 'pipe'],
+  }).trim();
+}
+
 /**
  * Get the HEAD commit hash for a repository.
  */
 export function getHeadCommit(repoPath: string): string {
   try {
-    return execSync('git rev-parse HEAD', {
-      cwd: repoPath,
-      encoding: 'utf-8',
-      stdio: ['pipe', 'pipe', 'pipe'],
-    }).trim();
+    return runGit(repoPath, ['rev-parse', 'HEAD']);
   } catch (e: unknown) {
     const msg = (e as Error).message;
     if (msg.includes('not a git repository')) {
@@ -31,19 +35,10 @@ export function getHeadCommit(repoPath: string): string {
  */
 export function getDiffFiles(repoPath: string, fromCommit: string | null): DiffFile[] {
   try {
-    let cmd: string;
-    if (fromCommit) {
-      cmd = `git diff --name-status ${fromCommit}..HEAD`;
-    } else {
-      // No anchor — show all tracked files as "added"
-      cmd = 'git ls-files';
-    }
+    const output = fromCommit
+      ? runGit(repoPath, ['diff', '--name-status', `${fromCommit}..HEAD`])
+      : runGit(repoPath, ['ls-files']);
 
-    const output = execSync(cmd, {
-      cwd: repoPath,
-      encoding: 'utf-8',
-      stdio: ['pipe', 'pipe', 'pipe'],
-    }).trim();
 
     if (!output) return [];
 
@@ -87,18 +82,9 @@ export function getDiffFiles(repoPath: string, fromCommit: string | null): DiffF
  */
 export function getDiffStat(repoPath: string, fromCommit: string | null): string {
   try {
-    let cmd: string;
-    if (fromCommit) {
-      cmd = `git diff --stat ${fromCommit}..HEAD`;
-    } else {
-      cmd = 'git diff --stat HEAD';
-    }
-
-    return execSync(cmd, {
-      cwd: repoPath,
-      encoding: 'utf-8',
-      stdio: ['pipe', 'pipe', 'pipe'],
-    }).trim();
+    return fromCommit
+      ? runGit(repoPath, ['diff', '--stat', `${fromCommit}..HEAD`])
+      : runGit(repoPath, ['diff', '--stat', 'HEAD']);
   } catch {
     return '';
   }
@@ -109,11 +95,7 @@ export function getDiffStat(repoPath: string, fromCommit: string | null): string
  */
 export function getCommitAge(repoPath: string, commit: string): string {
   try {
-    return execSync(`git log -1 --format=%cr ${commit}`, {
-      cwd: repoPath,
-      encoding: 'utf-8',
-      stdio: ['pipe', 'pipe', 'pipe'],
-    }).trim();
+    return runGit(repoPath, ['log', '-1', '--format=%cr', commit]);
   } catch {
     return 'unknown';
   }
@@ -124,11 +106,7 @@ export function getCommitAge(repoPath: string, commit: string): string {
  */
 export function getCommitCount(repoPath: string, fromCommit: string, toCommit: string): number {
   try {
-    const output = execSync(`git rev-list --count ${fromCommit}..${toCommit}`, {
-      cwd: repoPath,
-      encoding: 'utf-8',
-      stdio: ['pipe', 'pipe', 'pipe'],
-    }).trim();
+    const output = runGit(repoPath, ['rev-list', '--count', `${fromCommit}..${toCommit}`]);
     return parseInt(output, 10) || 0;
   } catch {
     return 0;
@@ -140,11 +118,7 @@ export function getCommitCount(repoPath: string, fromCommit: string, toCommit: s
  */
 export function commitExists(repoPath: string, commit: string): boolean {
   try {
-    execSync(`git cat-file -t ${commit}`, {
-      cwd: repoPath,
-      encoding: 'utf-8',
-      stdio: ['pipe', 'pipe', 'pipe'],
-    });
+    runGit(repoPath, ['cat-file', '-t', commit]);
     return true;
   } catch {
     return false;

@@ -173,6 +173,21 @@ describe('CLI Integration', () => {
     expect(edges).toContain('No edges');
   });
 
+  it('does not resolve node IDs across the wrong model', () => {
+    mm('create model-a');
+    mm('create model-b');
+    mm('add model-a Alpha --id alpha-id');
+    mm('add model-b Beta --id beta-id');
+
+    expect(() => mm('update model-b alpha-id --label WrongNode')).toThrow(/Node not found/);
+
+    const modelANodes = JSON.parse(mm('--json nodes model-a'));
+    const modelBNodes = JSON.parse(mm('--json nodes model-b'));
+
+    expect(modelANodes[0].label).toBe('Alpha');
+    expect(modelBNodes[0].label).toBe('Beta');
+  });
+
   it('unlinks an edge', () => {
     mm('create test');
     mm('add test A');

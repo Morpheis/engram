@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { execSync } from 'child_process';
-import { mkdtempSync, writeFileSync, rmSync, mkdirSync } from 'fs';
+import { mkdtempSync, writeFileSync, rmSync, mkdirSync, existsSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
 import {
@@ -213,6 +213,14 @@ describe('commitExists', () => {
 
   it('returns false for non-existent commit', () => {
     expect(commitExists(tmpDir, 'deadbeefdeadbeefdeadbeefdeadbeefdeadbeef')).toBe(false);
+  });
+
+  it('treats commit refs as literal git arguments, not shell snippets', () => {
+    const injectedFile = join(tmpDir, 'should-not-exist');
+    const maliciousRef = 'HEAD; touch should-not-exist';
+
+    expect(commitExists(tmpDir, maliciousRef)).toBe(false);
+    expect(existsSync(injectedFile)).toBe(false);
   });
 });
 

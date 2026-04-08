@@ -222,6 +222,20 @@ describe('search command', () => {
     expect(results[0].node.label).toBe('Tom-Merkle');
   });
 
+  it('applies --limit after global relevance ranking across models', () => {
+    mm('create aaa --type code');
+    mm('create zzz --type code');
+    mm('add aaa Noise --type service -m note="Auth appears only in metadata here"');
+    mm('add zzz AuthService --type service');
+
+    const output = mm('--json search Auth --limit 1');
+    const results = JSON.parse(output).results;
+
+    expect(results).toHaveLength(1);
+    expect(results[0].model).toBe('zzz');
+    expect(results[0].node.label).toBe('AuthService');
+  });
+
   it('supports multiple --exclude flags', () => {
     mm('create model-a --type code');
     mm('create model-b --type code');

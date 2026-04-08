@@ -1467,13 +1467,15 @@ export class SqliteStorage implements StorageInterface {
   }): Array<{ model: Model; node: GraphNode; edges: Edge[] }> {
     const limit = options?.limit ?? 5;
     const excludeModels = options?.excludeModels ?? [];
+    const trimmedQuery = query.trim();
+
+    if (!trimmedQuery) return [];
 
     // Split query into individual terms for OR-based matching.
     // "Tom Merkle" → ["%Tom%", "%Merkle%"] so we match "Tom-Merkle", metadata containing "Tom", etc.
-    const terms = query.split(/\s+/).filter(t => t.length > 0);
+    const terms = trimmedQuery.split(/\s+/).filter(t => t.length > 0);
     const patterns = terms.map(t => `%${t}%`);
-    // Also keep the full query as a pattern for exact multi-word matches
-    const fullPattern = `%${query}%`;
+    const lowerTerms = terms.map(t => t.toLowerCase());
 
     // Determine which models to search
     let models: Model[];
@@ -1489,12 +1491,13 @@ export class SqliteStorage implements StorageInterface {
     const excludeSet = new Set(excludeModels.map(n => n.toLowerCase()));
     models = models.filter(m => !excludeSet.has(m.name.toLowerCase()));
 
-    const results: Array<{ model: Model; node: GraphNode; edges: Edge[] }> = [];
-    const seenNodeIds = new Set<string>();
+    const candidates = new Map<string, { model: Model; node: GraphNode }>();
+    const addCandidate = (model: Model, node: GraphNode | null) => {
+      if (!node || candidates.has(node.id)) return;
+      candidates.set(node.id, { model, node });
+    };
 
     for (const model of models) {
-      if (results.length >= limit) break;
-
       // 1. Search nodes by label, type, or metadata
       // Build dynamic OR clauses for each term
       const termClauses = patterns.map(() =>
@@ -1509,84 +1512,51 @@ export class SqliteStorage implements StorageInterface {
       `).all(model.id, ...termParams) as NodeRow[];
 
       for (const row of matchingNodes) {
-        if (results.length >= limit) break;
-        const node = toNode(row);
-        if (seenNodeIds.has(node.id)) continue;
-        seenNodeIds.add(node.id);
-
-        const edges = this.getNodeEdges(node.id);
-        results.push({ model, node, edges });
+        addCandidate(model, toNode(row));
       }
 
-      // 2. Check if model name/description matches — return top nodes from that model
-      if (results.length < limit) {
-        const lowerTerms = terms.map(t => t.toLowerCase());
-        const modelNameMatch = lowerTerms.some(t => model.name.toLowerCase().includes(t)) ||
-          lowerTerms.some(t => model.description?.toLowerCase().includes(t) ?? false);
+      // 2. Check if model name/description matches — surface a few nodes from that model
+      const modelNameMatch = lowerTerms.some(t => model.name.toLowerCase().includes(t)) ||
+        lowerTerms.some(t => model.description?.toLowerCase().includes(t) ?? false);
 
-        if (modelNameMatch) {
-          const modelNodes = this.db.prepare(
-            'SELECT * FROM nodes WHERE model_id = ? ORDER BY label LIMIT ?'
-          ).all(model.id, Math.min(3, limit - results.length)) as NodeRow[];
+      if (modelNameMatch) {
+        const modelNodes = this.db.prepare(
+          'SELECT * FROM nodes WHERE model_id = ? ORDER BY label LIMIT 3'
+        ).all(model.id) as NodeRow[];
 
-          for (const row of modelNodes) {
-            if (results.length >= limit) break;
-            const node = toNode(row);
-            if (seenNodeIds.has(node.id)) continue;
-            seenNodeIds.add(node.id);
-
-            const edges = this.getNodeEdges(node.id);
-            results.push({ model, node, edges });
-          }
+        for (const row of modelNodes) {
+          addCandidate(model, toNode(row));
         }
       }
 
       // 3. Search edges by relationship label — return connected nodes
-      if (results.length < limit) {
-        const edgeTermClauses = patterns.map(() => 'e.relationship LIKE ?').join(' OR ');
-        const matchingEdges = this.db.prepare(`
-          SELECT e.* FROM edges e
-          JOIN nodes n ON e.source_id = n.id
-          WHERE n.model_id = ? AND (${edgeTermClauses})
-          ORDER BY e.relationship
-        `).all(model.id, ...patterns) as EdgeRow[];
+      const edgeTermClauses = patterns.map(() => 'e.relationship LIKE ?').join(' OR ');
+      const matchingEdges = this.db.prepare(`
+        SELECT e.* FROM edges e
+        JOIN nodes n ON e.source_id = n.id
+        WHERE n.model_id = ? AND (${edgeTermClauses})
+        ORDER BY e.relationship
+      `).all(model.id, ...patterns) as EdgeRow[];
 
-        for (const edgeRow of matchingEdges) {
-          if (results.length >= limit) break;
-          const edge = toEdge(edgeRow);
-
-          // Add source node if not already seen
-          if (!seenNodeIds.has(edge.sourceId)) {
-            const sourceNode = this.getNode(edge.sourceId);
-            if (sourceNode) {
-              seenNodeIds.add(sourceNode.id);
-              const edges = this.getNodeEdges(sourceNode.id);
-              results.push({ model, node: sourceNode, edges });
-            }
-          }
-
-          // Add target node if not already seen
-          if (results.length < limit && !seenNodeIds.has(edge.targetId)) {
-            const targetNode = this.getNode(edge.targetId);
-            if (targetNode) {
-              seenNodeIds.add(targetNode.id);
-              const edges = this.getNodeEdges(targetNode.id);
-              results.push({ model, node: targetNode, edges });
-            }
-          }
-        }
+      for (const edgeRow of matchingEdges) {
+        const edge = toEdge(edgeRow);
+        addCandidate(model, this.getNode(edge.sourceId));
+        addCandidate(model, this.getNode(edge.targetId));
       }
     }
 
-    // Rank results by relevance: label match > type match > metadata match
-    const lowerTerms = terms.map(t => t.toLowerCase());
-    results.sort((a, b) => {
-      const scoreA = this.computeSearchRelevance(a.node, lowerTerms);
-      const scoreB = this.computeSearchRelevance(b.node, lowerTerms);
-      return scoreB - scoreA;
-    });
-
-    return results.slice(0, limit);
+    return Array.from(candidates.values())
+      .sort((a, b) => {
+        const scoreA = this.computeSearchRelevance(a.node, lowerTerms);
+        const scoreB = this.computeSearchRelevance(b.node, lowerTerms);
+        return scoreB - scoreA;
+      })
+      .slice(0, limit)
+      .map(({ model, node }) => ({
+        model,
+        node,
+        edges: this.getNodeEdges(node.id),
+      }));
   }
 
   /**

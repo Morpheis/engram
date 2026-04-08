@@ -25,12 +25,21 @@ function parseMeta(metaPairs: string[]): Record<string, unknown> {
 function resolveNode(storage: StorageInterface, modelNameOrId: string, ref: string) {
   const model = storage.getModel(modelNameOrId);
   if (!model) throw new Error(`Model not found: ${modelNameOrId}`);
-  // Try by ID first
+
+  // Try by ID first, but only within the addressed model scope.
   const byId = storage.getNode(ref);
-  if (byId) return byId;
-  // Try by label
+  if (byId?.modelId === model.id) return byId;
+
+  // Overlays may need to resolve parent nodes by ID as part of their effective view.
+  if (byId && model.parentModelId && byId.modelId === model.parentModelId) {
+    const overlayVisibleNode = storage.listNodes(model.id).find(node => node.id === ref);
+    if (overlayVisibleNode) return overlayVisibleNode;
+  }
+
+  // Try by label within the model scope.
   const byLabel = storage.findNode(model.id, ref);
   if (byLabel) return byLabel;
+
   throw new Error(`Node not found: ${ref}`);
 }
 
