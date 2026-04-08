@@ -1,6 +1,6 @@
 {
   "name": "@clawdactual/engram",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "Persistent knowledge traces for AI agents — structured knowledge graphs that survive session restarts",
   "type": "module",
   "main": "./dist/index.js",
