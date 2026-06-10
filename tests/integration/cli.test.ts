@@ -157,6 +157,48 @@ describe('CLI Integration', () => {
     expect(nodes[0].type).toBe('api');
   });
 
+  it('accepts --set as a metadata alias when updating a node', () => {
+    mm('create test');
+    mm('add test MyNode --type service --meta owner=old');
+    mm('update test MyNode --set owner=new version=2');
+
+    const output = mm('--json nodes test');
+    const nodes = JSON.parse(output);
+    expect(nodes[0].metadata).toEqual({ owner: 'new', version: 2 });
+  });
+
+  it('upserts nodes by label', () => {
+    mm('create test');
+    const created = JSON.parse(mm('--json upsert test OpenClaw --type service --set version=1'));
+    expect(created.action).toBe('created');
+    expect(created.node.label).toBe('OpenClaw');
+    expect(created.node.type).toBe('service');
+
+    const updated = JSON.parse(mm('--json upsert test OpenClaw --type infra --set version=2 pluginState=sqlite'));
+    expect(updated.action).toBe('updated');
+    expect(updated.node.id).toBe(created.node.id);
+    expect(updated.node.type).toBe('infra');
+    expect(updated.node.metadata).toEqual({ version: 2, pluginState: 'sqlite' });
+  });
+
+  it('can add with --upsert to avoid duplicate-label failures', () => {
+    mm('create test');
+    mm('add test Existing --type service --meta owner=first');
+    mm('add test Existing --upsert --type api --set owner=second');
+
+    const output = mm('--json nodes test');
+    const nodes = JSON.parse(output);
+    expect(nodes).toHaveLength(1);
+    expect(nodes[0].type).toBe('api');
+    expect(nodes[0].metadata).toEqual({ owner: 'second' });
+  });
+
+  it('suggests update or upsert when add hits an existing label', () => {
+    mm('create test');
+    mm('add test Existing');
+    expect(() => mm('add test Existing')).toThrow(/engram upsert test Existing/);
+  });
+
   it('removes a node and its edges', () => {
     mm('create test');
     mm('add test A');

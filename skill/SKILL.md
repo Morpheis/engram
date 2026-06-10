@@ -51,11 +51,15 @@ engram import <file>
 
 ```bash
 engram add <model> <label> [--type <type>] [-m key=value ...]
+engram add <model> <label> --upsert [--type <type>] [-m key=value ...]
+engram upsert <model> <label> [--type <type>] [-m key=value ...]
 engram rm <model> <node>
 engram update <model> <node> [--label new] [--type new] [-m key=value ...]
 engram verify <model> <node>           # mark as recently verified
 engram nodes <model> [-t type]
 ```
+
+`--set key=value` is accepted anywhere node metadata is accepted; it is an alias for `--meta`/`-m`. Prefer `engram upsert` for incremental agent discoveries when the node may already exist.
 
 ### Edges
 
@@ -220,7 +224,7 @@ After testing both "review everything first, then batch" and "enter as you go", 
 
 3. **Add discoveries incrementally** — During coding, when you discover non-obvious relationships (e.g., "this function silently depends on NODE_ENV being set"), add them immediately:
    ```bash
-   engram add myapp isPubSubDisabled --type function -m "note=returns false in production regardless of DISABLE_AUTH"
+   engram upsert myapp isPubSubDisabled --type function -m "note=returns false in production regardless of DISABLE_AUTH"
    engram link myapp fleet-rest calls isPubSubDisabled
    ```
 
@@ -379,7 +383,7 @@ engram edges mymodel --to <changed-node>
 # Remove edges that no longer exist, add new ones
 
 # 7. Add nodes for new exports/modules introduced in the changes
-engram add mymodel NewThing -t function -m file=src/file.ts 'note=...'
+engram upsert mymodel NewThing -t function -m file=src/file.ts 'note=...'
 
 # 8. Refresh the git anchor
 engram refresh mymodel

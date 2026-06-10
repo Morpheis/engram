@@ -55,9 +55,10 @@ npx tsx src/index.ts <command>
 
 | Command | Description |
 |---|---|
-| `engram add <model> <label> [--type t] [-m k=v]` | Add a node with optional type and metadata |
+| `engram add <model> <label> [--type t] [-m k=v] [--upsert]` | Add a node with optional type and metadata |
+| `engram upsert <model> <label> [--type t] [-m k=v]` | Create a node or merge updates into the existing node with that label |
 | `engram rm <model> <node>` | Remove a node and its edges |
-| `engram update <model> <node> [--label] [--type] [-m]` | Update node properties |
+| `engram update <model> <node> [--label] [--type] [-m]` | Update node properties; `--set` is an alias for `--meta` |
 | `engram verify <model> <node>` | Mark a node as freshly verified |
 | `engram nodes <model> [-t type]` | List nodes, optionally filtered by type |
 
@@ -163,6 +164,7 @@ engram create myapp -t code -d "My application" -r /path/to/repo
 engram add myapp Frontend --type component -m file=src/App.tsx
 engram add myapp API --type service -m file=src/api/server.ts -m port=3000
 engram add myapp DB --type database -m engine=postgres
+engram upsert myapp API --set owner=platform
 engram link myapp Frontend calls API -m via="REST /api"
 engram link myapp API depends-on DB
 engram refresh myapp
@@ -286,7 +288,7 @@ If you're an AI agent using Engram, add this to your workspace bootstrap file (e
 ```markdown
 - **Engram:** your persistent knowledge graph (relationships between code, people,
   systems). When you discover non-obvious relationships during work, add them:
-  `engram add <model> <node> -t <type> -m key=value`
+  `engram upsert <model> <node> -t <type> -m key=value`
   (read the engram skill for full usage).
 ```
 

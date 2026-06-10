@@ -21,6 +21,19 @@ function parseMeta(metaPairs: string[]): Record<string, unknown> {
   return result;
 }
 
+interface NodeMutationOptions {
+  type?: string;
+  meta?: string[];
+  set?: string[];
+  id?: string;
+  upsert?: boolean;
+}
+
+function parseMetadataOptions(opts: Pick<NodeMutationOptions, 'meta' | 'set'>): Record<string, unknown> | undefined {
+  const pairs = [...(opts.meta ?? []), ...(opts.set ?? [])];
+  return pairs.length > 0 ? parseMeta(pairs) : undefined;
+}
+
 /** Resolve a node reference: could be an ID or a label within the model */
 function resolveNode(storage: StorageInterface, modelNameOrId: string, ref: string) {
   const model = storage.getModel(modelNameOrId);
@@ -45,28 +58,117 @@ function resolveNode(storage: StorageInterface, modelNameOrId: string, ref: stri
 
 export { resolveNode, parseMeta };
 
+function isDuplicateNodeLabelError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  return message.includes('UNIQUE constraint failed: nodes.model_id, nodes.label');
+}
+
+function quoteArg(value: string): string {
+  if (/^[A-Za-z0-9_./:@-]+$/.test(value)) return value;
+  return JSON.stringify(value);
+}
+
+function outputDuplicateNodeSuggestion(modelName: string, label: string, existingId: string): void {
+  outputError(
+    `Node "${label}" already exists in model "${modelName}" (${existingId}). ` +
+    `Use "engram update ${quoteArg(modelName)} ${quoteArg(label)} -m key=value" ` +
+    `or "engram upsert ${quoteArg(modelName)} ${quoteArg(label)} -m key=value".`
+  );
+}
+
+function upsertNode(
+  storage: StorageInterface,
+  modelName: string,
+  label: string,
+  opts: NodeMutationOptions
+): { action: 'created' | 'updated'; node: ReturnType<StorageInterface['addNode']> } {
+  const model = storage.getModel(modelName);
+  if (!model) throw new Error(`Model not found: ${modelName}`);
+
+  const existing = storage.findNode(model.id, label);
+  if (existing) {
+    const node = storage.updateNode(existing.id, {
+      type: opts.type,
+      metadata: parseMetadataOptions(opts),
+    }, model.id);
+    return { action: 'updated', node };
+  }
+
+  const node = storage.addNode(model.id, {
+    label,
+    type: opts.type,
+    metadata: parseMetadataOptions(opts),
+    id: opts.id,
+  });
+  return { action: 'created', node };
+}
+
 export function registerNodeCommands(program: Command, getStorage: () => StorageInterface): void {
   program
     .command('add <model> <label>')
     .description('Add a node to a model')
     .option('-t, --type <type>', 'Node type')
     .option('-m, --meta <pairs...>', 'Metadata key=value pairs')
+    .option('--set <pairs...>', 'Alias for --meta')
     .option('-i, --id <id>', 'Custom node ID')
-    .action((modelName: string, label: string, opts: { type?: string; meta?: string[]; id?: string }) => {
+    .option('--upsert', 'Update the existing node with this label instead of failing')
+    .action((modelName: string, label: string, opts: NodeMutationOptions) => {
       try {
         const storage = getStorage();
         const model = storage.getModel(modelName);
         if (!model) throw new Error(`Model not found: ${modelName}`);
+        if (opts.upsert) {
+          const result = upsertNode(storage, modelName, label, opts);
+          if (isJsonMode()) {
+            outputJson(result);
+          } else {
+            outputSuccess(`${result.action === 'created' ? 'Added' : 'Updated'} node ${result.node.label} (${result.node.id})`);
+          }
+          return;
+        }
         const node = storage.addNode(model.id, {
           label,
           type: opts.type,
-          metadata: opts.meta ? parseMeta(opts.meta) : undefined,
+          metadata: parseMetadataOptions(opts),
           id: opts.id,
         });
         if (isJsonMode()) {
           outputJson(node);
         } else {
           outputSuccess(`Added node ${node.label} (${node.id})`);
+        }
+      } catch (e: unknown) {
+        if (isDuplicateNodeLabelError(e)) {
+          const storage = getStorage();
+          const model = storage.getModel(modelName);
+          const existing = model ? storage.findNode(model.id, label) : null;
+          if (existing) {
+            outputDuplicateNodeSuggestion(modelName, label, existing.id);
+          } else {
+            outputError((e as Error).message);
+          }
+        } else {
+          outputError((e as Error).message);
+        }
+        process.exit(1);
+      }
+    });
+
+  program
+    .command('upsert <model> <label>')
+    .description('Create a node or update the existing node with the same label')
+    .option('-t, --type <type>', 'Node type')
+    .option('-m, --meta <pairs...>', 'Metadata key=value pairs to merge')
+    .option('--set <pairs...>', 'Alias for --meta')
+    .option('-i, --id <id>', 'Custom node ID when creating')
+    .action((modelName: string, label: string, opts: NodeMutationOptions) => {
+      try {
+        const result = upsertNode(getStorage(), modelName, label, opts);
+        if (isJsonMode()) {
+          outputJson(result);
+        } else {
+          outputSuccess(`${result.action === 'created' ? 'Added' : 'Updated'} node ${result.node.label}`);
+          outputNode(result.node);
         }
       } catch (e: unknown) {
         outputError((e as Error).message);
@@ -97,7 +199,8 @@ export function registerNodeCommands(program: Command, getStorage: () => Storage
     .option('-l, --label <label>', 'New label')
     .option('-t, --type <type>', 'New type')
     .option('-m, --meta <pairs...>', 'Metadata key=value pairs to merge')
-    .action((modelName: string, nodeRef: string, opts: { label?: string; type?: string; meta?: string[] }) => {
+    .option('--set <pairs...>', 'Alias for --meta')
+    .action((modelName: string, nodeRef: string, opts: { label?: string; type?: string; meta?: string[]; set?: string[] }) => {
       try {
         const storage = getStorage();
         const model = storage.getModel(modelName);
@@ -106,7 +209,7 @@ export function registerNodeCommands(program: Command, getStorage: () => Storage
         const updated = storage.updateNode(node.id, {
           label: opts.label,
           type: opts.type,
-          metadata: opts.meta ? parseMeta(opts.meta) : undefined,
+          metadata: parseMetadataOptions(opts),
         }, model.id);
         if (isJsonMode()) {
           outputJson(updated);
